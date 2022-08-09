@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Mouse {
+  id        String   @id @default(cuid()) // create cuid if no id is provided
+  createdAt DateTime @default(now()) @map(name: "created_at") // set automatically
+  updatedAt DateTime @updatedAt @map(name: "updated_at") // set automatically
+
+  author   User?   @relation(fields: [authorId], references: [id])
+  authorId String?
+
+  pyratId  String
+  chipId   Int
+  gender   String
+  deceased Boolean @default(false)
+  genoType String?
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?  @unique
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @updatedAt @map(name: "updated_at")
+  Mouse     Mouse[]
+
+  @@map(name: "users")
+}
