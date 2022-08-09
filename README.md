@@ -1,3 +1,13 @@
-# Fullstack Authentication Example with Next.js and NextAuth.js
+# Staircase experiment data recorder
 
-This is the starter project for the fullstack tutorial with Next.js and Prisma. You can find the final version of this project in the [`final`](https://github.com/prisma/blogr-nextjs-prisma/tree/final) branch of this repo.
+Project setup following example: https://vercel.com/guides/nextjs-prisma-postgres
+
+## Scripts
+
+Starting the dev server `yarn dev`
+
+Push the prisma schema to the db `npx prisma db push`
+
+Starting the prisma studio on http://localhost:5555 `npx prisma studio`
+
+Update the prisma client after a schema change `npx prisma generate`
