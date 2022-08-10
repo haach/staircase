@@ -12,8 +12,8 @@ datasource db {
 
 model User {
   id        String    @id @default(cuid())
-  name      String?   @unique
-  email     String?   @unique
+  name      String    @unique
+  email     String    @unique
   createdAt DateTime  @default(now()) @map(name: "created_at")
   updatedAt DateTime  @default(now()) @updatedAt @map(name: "updated_at")
   Session   Session[]
@@ -26,51 +26,14 @@ model Mouse {
   createdAt DateTime @default(now()) @map(name: "created_at") // set automatically
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at") // set automatically
 
-  pyratId  String
-  chipId   Int
-  gender   String
-  deceased Boolean @default(false)
+  pyratId     String    @map(name: "pyrat_id")
+  chipId      Int       @map(name: "chip_number")
+  gender      String
+  deceasedAt  DateTime? @map(name: "deceasedd_at")
+  groupNumber Int       @default(0) @map(name: "group_number")
+
   genoType String?
-  Group    Group?  @relation(fields: [groupId], references: [id])
-  groupId  String?
   Run      Run[]
-}
-
-model Group {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now()) @map(name: "created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
-
-  number  Int
-  members Mouse[]
-}
-
-model Recording {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now()) @map(name: "created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
-
-  right_stair_0 Int
-  right_stair_1 Int
-  right_stair_2 Int
-  right_stair_3 Int
-  right_stair_4 Int
-  right_stair_5 Int
-  right_stair_6 Int
-  right_stair_7 Int
-  right_stair_8 Int
-
-  left_stair_0 Int
-  left_stair_1 Int
-  left_stair_2 Int
-  left_stair_3 Int
-  left_stair_4 Int
-  left_stair_5 Int
-  left_stair_6 Int
-  left_stair_7 Int
-  left_stair_8 Int
-
-  Run Run[]
 }
 
 model Run {
@@ -79,12 +42,30 @@ model Run {
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
 
   mouse   Mouse  @relation(fields: [mouseId], references: [id])
-  mouseId String
+  mouseId String @map(name: "mouse_id")
 
-  run       Recording @relation(fields: [runId], references: [id])
-  runId     String
-  Session   Session?  @relation(fields: [sessionId], references: [id])
-  sessionId String?
+  rs0 Int?
+  rs1 Int?
+  rs2 Int?
+  rs3 Int?
+  rs4 Int?
+  rs5 Int?
+  rs6 Int?
+  rs7 Int?
+  rs8 Int?
+
+  ls0 Int?
+  ls1 Int?
+  ls2 Int?
+  ls3 Int?
+  ls4 Int?
+  ls5 Int?
+  ls6 Int?
+  ls7 Int?
+  ls8 Int?
+
+  Session   Session? @relation(fields: [sessionId], references: [id])
+  sessionId String?  @map(name: "session_id")
 }
 
 model Session {
@@ -93,17 +74,20 @@ model Session {
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
 
   author   User   @relation(fields: [authorId], references: [id])
-  authorId String
+  authorId String @map(name: "author_id")
 
   runs         Run[]
   Experiment   Experiment? @relation(fields: [experimentId], references: [id])
-  experimentId String?
+  experimentId String?     @map(name: "experiment_id")
 }
 
 model Experiment {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
+
+  name     String
+  closedAt DateTime? @map(name: "closed_at")
 
   sessions Session[]
 }
