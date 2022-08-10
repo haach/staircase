@@ -5,6 +5,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).json({message: 'Method not allowed'});
   }
-  const deletedExperiment = await prisma.experiment.delete({where: {id: JSON.parse(req.body).id}});
+  const deletedExperiment = await prisma.experiment.delete(JSON.parse(req.body));
   res.json(deletedExperiment);
 };

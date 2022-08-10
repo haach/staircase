@@ -6,9 +6,6 @@ export default async (req: NextApiRequest & {body: Prisma.ExperimentUpdateInput}
   if (req.method !== 'POST') {
     return res.status(405).json({message: 'Method not allowed'});
   }
-  const updatedExperiment = await prisma.experiment.update({
-    data: JSON.parse(req.body.data),
-    where: {id: JSON.parse(req.body.data.id)},
-  });
+  const updatedExperiment = await prisma.experiment.update(JSON.parse(req.body));
   res.json(updatedExperiment);
 };
