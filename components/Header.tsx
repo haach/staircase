@@ -1,49 +1,27 @@
-import React from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import React from 'react';
+import Link from 'next/link';
+import {useRouter} from 'next/router';
 
 const Header: React.FC = () => {
   const router = useRouter();
-  const isActive: (pathname: string) => boolean = (pathname) =>
-    router.pathname === pathname;
 
-  let left = (
-    <div className="left">
-      <Link href="/">
-        <a className="bold" data-active={isActive("/")}>
-          Feed
-        </a>
-      </Link>
-      <style jsx>{`
-        .bold {
-          font-weight: bold;
-        }
+  const links = [
+    {id: 'home', href: '/', label: 'Home'},
+    {id: 'experiments', href: '/experiments', label: 'Experiment overview'},
+  ];
 
-        a {
-          text-decoration: none;
-          color: #000;
-          display: inline-block;
-        }
-
-        .left a[data-active="true"] {
-          color: gray;
-        }
-
-        a + a {
-          margin-left: 1rem;
-        }
-      `}</style>
-    </div>
-  );
-
-  let right = null;
+  const isActive: (pathname: string) => boolean = (pathname) => router.pathname === pathname;
 
   return (
     <nav>
-      {left}
-      {right}
+      {links.map(({id, href, label}) => (
+        <Link key={id} href={href}>
+          <a data-active={isActive('/')}>{label}</a>
+        </Link>
+      ))}
       <style jsx>{`
         nav {
+          width: 100%;
           display: flex;
           padding: 2rem;
           align-items: center;
