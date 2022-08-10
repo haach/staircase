@@ -1,11 +1,11 @@
 import {InputGenerator} from 'components/InputGenerator';
 import Layout from 'components/Layout';
-import {experimentCreate} from 'pages/api/experimentCRUD';
 import React, {ChangeEvent, useState} from 'react';
 
 const ExperimentCreate: React.FC = () => {
-  const handleSubmit = () => {
-    experimentCreate(formState);
+  const handleSubmit = async () => {
+    const res = await fetch('/api/experiment/create', {method: 'POST', body: JSON.stringify(formState)});
+    console.log('res', res);
   };
   const [formState, setFormState] = useState<{name: string}>({name: ''});
 
