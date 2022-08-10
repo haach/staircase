@@ -9,11 +9,14 @@ import {serialize} from '../utils';
 
 export const getStaticProps: GetStaticProps = async () => {
   const experiments = await prisma.experiment.findMany({
-    /* include: {
-      author: {
-        select: {name: true},
+    orderBy: [
+      {
+        updatedAt: 'desc',
       },
-    }, */
+      {
+        createdAt: 'desc',
+      },
+    ],
   });
   return {
     props: {
@@ -40,7 +43,12 @@ const ExperimentOverview: React.FC<Props> = (props) => {
 
         <main>
           {props.experiments.length < 1 ? (
-            'No experiments recorded yet.'
+            <div>
+              There are no experiments recorded yet.
+              <Link href="/experiment/create">
+                <a>Create experiment</a>
+              </Link>
+            </div>
           ) : (
             <table>
               <thead>
@@ -49,6 +57,7 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                   <th>Start date</th>
                   <th>Last updated</th>
                   <th>Sessions recorded</th>
+                  <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
@@ -58,11 +67,20 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                     <td>{experiment.name}</td>
                     <td>{new Date(experiment.createdAt).toLocaleString()}</td>
                     <td>{new Date(experiment.updatedAt).toLocaleString()}</td>
-                    <td>{experiment.sessions?.length}</td>
+                    <td>{experiment.sessions?.length ?? 0}</td>
                     <td>
-                      <Link href={{pathname: `/experiment/${experiment.id}`}}>
-                        <a>Edit</a>
-                      </Link>
+                      {experiment.closedAt ? (
+                        <span title={`Closed at ${experiment.closedAt.toLocaleString()}`}>closed</span>
+                      ) : (
+                        <span>open</span>
+                      )}
+                    </td>
+                    <td>
+                      {!experiment.closedAt && (
+                        <Link href={{pathname: `/experiment/${experiment.id}`}}>
+                          <a>Edit</a>
+                        </Link>
+                      )}
                     </td>
                   </tr>
                 ))}
