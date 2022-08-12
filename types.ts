@@ -11,15 +11,14 @@ export interface User extends dbBaseProps {
 
 export interface Mouse extends dbBaseProps {
   pyratId: string; // Internal ID
-  chipId: string; // number from 0 - 99
-  gender: 'm' | 'f';
+  chipId: number; // number from 0 - 99
+  groupNumber: number; // number from 0 - 99
+  gender: 'FEMALE' | 'MALE';
   deceasedAt?: Date;
   genoType?: string; // Specific genetic modification of the subject
 }
 
 export interface Run extends dbBaseProps {
-  mouse: Mouse;
-
   // Right steps 0 - 8
   rs0: number;
   rs1: number;
@@ -51,5 +50,6 @@ export interface Session extends dbBaseProps {
 export interface Experiment extends dbBaseProps {
   name: string;
   closedAt?: Date;
-  sessions: Array<Session>;
+  sessions?: Array<Session>;
+  mice?: Mouse[];
 }

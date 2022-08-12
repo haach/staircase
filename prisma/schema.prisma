@@ -11,12 +11,13 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  createdAt DateTime  @default(now()) @map(name: "created_at")
-  updatedAt DateTime  @default(now()) @updatedAt @map(name: "updated_at")
-  name      String    @unique
-  email     String    @unique
-  Session   Session[]
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
+  name      String   @unique
+  email     String   @unique
+
+  Session Session[]
 
   @@map(name: "users")
 }
@@ -28,21 +29,20 @@ model Mouse {
 
   pyratId     String    @map(name: "pyrat_id")
   chipId      Int       @map(name: "chip_number")
+  groupNumber Int       @default(0) @map(name: "group_number")
   gender      String
   deceasedAt  DateTime? @map(name: "deceasedd_at")
-  groupNumber Int       @default(0) @map(name: "group_number")
 
   genoType String?
-  Run      Run[]
+
+  Experiment   Experiment? @relation(fields: [experimentId], references: [id])
+  experimentId String?
 }
 
 model Run {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
-
-  mouse   Mouse  @relation(fields: [mouseId], references: [id])
-  mouseId String @map(name: "mouse_id")
 
   rs0 Int?
   rs1 Int?
@@ -77,7 +77,7 @@ model Session {
   authorId String @map(name: "author_id")
 
   runs         Run[]
-  experiment   Experiment? @relation(fields: [experimentId], references: [id])
+  Experiment   Experiment? @relation(fields: [experimentId], references: [id])
   experimentId String?     @map(name: "experiment_id")
 }
 
@@ -90,4 +90,5 @@ model Experiment {
   closedAt DateTime? @map(name: "closed_at")
 
   sessions Session[]
+  mice     Mouse[]
 }
