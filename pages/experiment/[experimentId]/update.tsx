@@ -1,13 +1,10 @@
-import {Prisma} from '@prisma/client';
 import ExperimentCreateUpdateForm from 'components/experiment/ExperimentCreateUpdateForm';
-import {InputGenerator} from 'components/InputGenerator';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
-import Link from 'next/link';
 import {useRouter} from 'next/router';
-import React, {ChangeEvent, useState} from 'react';
-import {Mouse, Experiment} from 'types';
+import React from 'react';
+import {Experiment} from 'types';
 import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
@@ -60,7 +57,7 @@ type Props = {
   experiment: Experiment;
 };
 
-const ExperimentCreate: React.FC<Props> = (props) => {
+const ExperimentUpdate: React.FC<Props> = (props) => {
   const router = useRouter();
   return (
     <Layout>
@@ -77,4 +74,4 @@ const ExperimentCreate: React.FC<Props> = (props) => {
   );
 };
 
-export default ExperimentCreate;
+export default ExperimentUpdate;

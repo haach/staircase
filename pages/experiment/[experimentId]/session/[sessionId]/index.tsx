@@ -3,6 +3,7 @@ import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
+import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react';
 import {connect} from 'tls';
 import {Session} from 'types';
@@ -10,7 +11,7 @@ import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const session = await prisma.session.findUnique({
-    where: {id: params.id as string},
+    where: {id: params.sessionId as string},
     include: {
       author: true,
       runs: true,
@@ -46,13 +47,13 @@ const getFreshRuns = async (id) => {
   return sessionResponse;
 };
 
-const deleteRun = async (session_id) => {
+const deleteRun = async (run_id) => {
   const data: Prisma.RunDeleteArgs = {
-    where: {id: session_id},
+    where: {id: run_id},
   };
   const res = await fetch('/api/run/delete', {method: 'POST', body: JSON.stringify(data)});
   if (!res.ok) {
-    throw new Error('Error deleting run ' + session_id);
+    throw new Error('Error deleting run ' + run_id);
   }
   return res.json();
 };
@@ -72,9 +73,9 @@ type Props = {
   session: Session;
 };
 
-const ExperimentDetail: React.FC<Props> = (props) => {
-  console.log('props', props);
+const SessionDetail: React.FC<Props> = (props) => {
   const [runList, setRunList] = useState(props.session.runs); // Initially use prerendered props
+  const router = useRouter();
 
   const updateRunList = () => {
     // Update session list and hydrate view
@@ -104,12 +105,12 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                     {console.log('run', run)}
                     <td>{idx + 1}</td>
                     <td>
-                      <Link href={{pathname: `/experiment/session/${run.id}`}}>
+                      <Link href={{pathname: `${router.asPath}/run/${run.id}`}}>
                         <a>View</a>
                       </Link>
                       <button
                         onClick={() => {
-                          deleteRun(props.session.id).then(() => updateRunList());
+                          deleteRun(run.id).then(() => updateRunList());
                         }}
                       >
                         Delete
@@ -120,11 +121,19 @@ const ExperimentDetail: React.FC<Props> = (props) => {
               </tbody>
             </table>
           )}
-          <button onClick={() => createNewRun(props.session.id).then(() => updateRunList())}>Record a run</button>
+          <button
+            onClick={() =>
+              createNewRun(props.session.id).then((res) => {
+                router.push(`${router.asPath}/run/${res.id}?runListLength=${runList.length}`);
+              })
+            }
+          >
+            Record a run
+          </button>
         </main>
       </div>
     </Layout>
   );
 };
 
-export default ExperimentDetail;
+export default SessionDetail;

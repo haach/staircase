@@ -112,7 +112,7 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                           <Link href={{pathname: `/experiment/${experiment.id}`}}>
                             <a>View</a>
                           </Link>
-                          <Link href={{pathname: `/experiment/update/${experiment.id}`}}>
+                          <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
                             <a>Edit</a>
                           </Link>
                           <button

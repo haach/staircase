@@ -3,13 +3,14 @@ import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
+import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
-    where: {id: params.id as string},
+    where: {id: params.experimentId as string},
     include: {
       mice: true,
       sessions: {
@@ -93,6 +94,8 @@ type Props = {
 
 const ExperimentDetail: React.FC<Props> = (props) => {
   const [sessionList, setSessionList] = useState(props.experiment.sessions); // Initially use prerendered props
+  const router = useRouter();
+  console.log('router', router);
 
   const updateSessionList = () => {
     // Update session list and hydrate view
@@ -141,7 +144,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                     <td>{session.runs?.length ?? 0}</td>
 
                     <td>
-                      <Link href={{pathname: `/experiment/session/${session.id}`}}>
+                      <Link href={{pathname: `${router.asPath}/session/${session.id}`}}>
                         <a>View</a>
                       </Link>
                       <button
