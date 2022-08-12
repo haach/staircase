@@ -76,21 +76,9 @@ const ExperimentOverview: React.FC<Props> = (props) => {
       <div className="page">
         <h1>Experiment overview</h1>
 
-        <Link href="/experiment/create">
-          <a>Create experiment</a>
-        </Link>
-
         <main>
-          {experimentList === null && <p>Loading...</p>}
-          {experimentList && experimentList.length < 1 && (
-            <div>
-              There are no experiments recorded yet.
-              <Link href="/experiment/create">
-                <a>Create experiment</a>
-              </Link>
-            </div>
-          )}
-          {experimentList && experimentList.length > 1 && (
+          {experimentList.length < 1 && <div>There are no experiments recorded yet.</div>}
+          {experimentList.length > 0 && (
             <table>
               <thead>
                 <tr>
@@ -110,10 +98,7 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                     <td>{new Date(experiment.createdAt).toLocaleString()}</td>
                     <td>{new Date(experiment.updatedAt).toLocaleString()}</td>
                     <td>{experiment.sessions?.length ?? 0}</td>
-                    <td>
-                      {experiment.mice?.length ?? 0}
-                      {console.log('experiment', experiment)}
-                    </td>
+                    <td>{experiment.mice?.length ?? 0}</td>
                     <td>
                       {experiment.closedAt ? (
                         <span title={`Closed at ${experiment.closedAt.toLocaleString()}`}>closed</span>
@@ -145,6 +130,9 @@ const ExperimentOverview: React.FC<Props> = (props) => {
               </tbody>
             </table>
           )}
+          <Link href="/experiment/create">
+            <a>Create experiment</a>
+          </Link>
         </main>
       </div>
     </Layout>

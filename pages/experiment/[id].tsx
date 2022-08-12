@@ -11,6 +11,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
     where: {id: params.id as string},
     include: {
+      mice: true,
       sessions: {
         include: {
           author: true,
@@ -81,7 +82,7 @@ const createNewSession = async (experimentId) => {
   };
   const res = await fetch('/api/session/create', {method: 'POST', body: JSON.stringify({data})});
   if (!res.ok) {
-    throw new Error('Error fetching sesions');
+    throw new Error('Error creating run');
   }
   return res.json();
 };
@@ -91,21 +92,17 @@ type Props = {
 };
 
 const ExperimentDetail: React.FC<Props> = (props) => {
-  const [sessions, setSessions] = useState(props.experiment.sessions); // Initially use prerendered props
+  const [sessionList, setSessionList] = useState(props.experiment.sessions); // Initially use prerendered props
 
   const updateSessionList = () => {
     // Update session list and hydrate view
-    getFreshSessions(props.experiment.id).then((data) => setSessions(data));
+    getFreshSessions(props.experiment.id).then((data) => setSessionList(data));
   };
 
   return (
     <Layout>
       <div className="page">
         <h1>Experiment: {props.experiment.name}</h1>
-
-        <button onClick={() => createNewSession(props.experiment.id).then(() => updateSessionList())}>
-          Start a new session
-        </button>
 
         <p>Created {new Date(props.experiment.createdAt).toLocaleString()}</p>
         {!props.experiment.closedAt && <p>Last Updated {new Date(props.experiment.updatedAt).toLocaleString()}</p>}
@@ -114,9 +111,12 @@ const ExperimentDetail: React.FC<Props> = (props) => {
             Closed at {new Date(props.experiment.closedAt).toLocaleString()} <button>REOPEN</button>
           </p>
         )}
+        <p>Mice count: {props.experiment.mice?.length ?? 0}</p>
         <main>
           <h2>Sessions </h2>
-          {sessions?.length > 0 ? (
+          {sessionList.length < 1 && <div>There are no sessions in this experiment.</div>}
+
+          {sessionList.length > 0 && (
             <table>
               <thead>
                 <tr>
@@ -129,7 +129,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {sessions.map((session, idx) => (
+                {sessionList.map((session, idx) => (
                   <tr key={session.id} className="post">
                     <td>{idx + 1}</td>
                     <td>
@@ -156,14 +156,10 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                 ))}
               </tbody>
             </table>
-          ) : (
-            <div>
-              There are no sessions in this experiment.
-              <button onClick={() => createNewSession(props.experiment.id).then(() => updateSessionList())}>
-                Start a new session
-              </button>
-            </div>
           )}
+          <button onClick={() => createNewSession(props.experiment.id).then(() => updateSessionList())}>
+            Start a new session
+          </button>
         </main>
       </div>
     </Layout>
