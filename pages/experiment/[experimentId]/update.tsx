@@ -9,7 +9,7 @@ import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
-    where: {id: params.id as string},
+    where: {id: params.experimentId as string},
     include: {mice: true},
   });
   return {

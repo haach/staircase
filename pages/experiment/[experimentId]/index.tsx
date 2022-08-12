@@ -95,7 +95,6 @@ type Props = {
 const ExperimentDetail: React.FC<Props> = (props) => {
   const [sessionList, setSessionList] = useState(props.experiment.sessions); // Initially use prerendered props
   const router = useRouter();
-  console.log('router', router);
 
   const updateSessionList = () => {
     // Update session list and hydrate view

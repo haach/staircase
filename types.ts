@@ -19,6 +19,7 @@ export interface Mouse extends dbBaseProps {
 }
 
 export interface Run extends dbBaseProps {
+  Mouse: Mouse;
   // Right steps 0 - 8
   rs0: number;
   rs1: number;
@@ -45,6 +46,7 @@ export interface Run extends dbBaseProps {
 export interface Session extends dbBaseProps {
   author: User;
   runs: Array<Run>;
+  Experiment: Experiment;
 }
 
 export interface Experiment extends dbBaseProps {

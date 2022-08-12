@@ -37,6 +37,7 @@ model Mouse {
 
   Experiment   Experiment? @relation(fields: [experimentId], references: [id])
   experimentId String?
+  Run          Run[]
 }
 
 model Run {
@@ -63,6 +64,9 @@ model Run {
   ls6 Int?
   ls7 Int?
   ls8 Int?
+
+  Mouse   Mouse?  @relation(fields: [mouseId], references: [id])
+  mouseId String?
 
   Session   Session? @relation(fields: [sessionId], references: [id])
   sessionId String?  @map(name: "session_id")

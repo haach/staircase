@@ -4,8 +4,8 @@ import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
+import {getMiceByExperimentId} from 'pages/experiment/[experimentId]/session/[sessionId]/run/[runId]';
 import React, {useEffect, useState} from 'react';
-import {connect} from 'tls';
 import {Session} from 'types';
 import {serialize} from 'utils';
 
@@ -15,6 +15,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
     include: {
       author: true,
       runs: true,
+      Experiment: true,
     },
   });
   return {
@@ -75,12 +76,22 @@ type Props = {
 
 const SessionDetail: React.FC<Props> = (props) => {
   const [runList, setRunList] = useState(props.session.runs); // Initially use prerendered props
+  const [mouseCount, setMouseCount] = useState<number>(0);
   const router = useRouter();
 
   const updateRunList = () => {
     // Update session list and hydrate view
     getFreshRuns(props.session.id).then((data) => setRunList(data));
   };
+
+  const getMouseCount = async () => {
+    const count = await getMiceByExperimentId(props.session.Experiment.id);
+    setMouseCount(count);
+  };
+
+  useEffect(() => {
+    getMouseCount();
+  }, []);
 
   return (
     <Layout>
@@ -102,7 +113,6 @@ const SessionDetail: React.FC<Props> = (props) => {
               <tbody>
                 {runList.map((run, idx) => (
                   <tr key={run.id} className="post">
-                    {console.log('run', run)}
                     <td>{idx + 1}</td>
                     <td>
                       <Link href={{pathname: `${router.asPath}/run/${run.id}`}}>
@@ -127,9 +137,18 @@ const SessionDetail: React.FC<Props> = (props) => {
                 router.push(`${router.asPath}/run/${res.id}?runListLength=${runList.length}`);
               })
             }
+            disabled={mouseCount < 1}
           >
             Record a run
           </button>
+          {mouseCount < 1 && (
+            <p>
+              ⚠️ This experiment is not properly set up yet. Please create subjects before you start recording data.{' '}
+              <Link href={`/experiment/${props.session.Experiment.id}/update`}>
+                <a>Go to experiment setup</a>
+              </Link>
+            </p>
+          )}
         </main>
       </div>
     </Layout>
