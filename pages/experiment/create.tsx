@@ -1,41 +1,29 @@
-import {InputGenerator} from 'components/InputGenerator';
+import {Experiment, Prisma} from '@prisma/client';
+import ExperimentCreateUpdateForm from 'components/experiment/ExperimentCreateUpdateForm';
 import Layout from 'components/Layout';
-import React, {ChangeEvent, useState} from 'react';
+import {useRouter} from 'next/router';
+import React, {useState} from 'react';
+
+const handleSubmit = async (formState, callback: () => void) => {
+  const data: Prisma.ExperimentCreateInput = {...formState, mice: {create: formState.mice}};
+  const res = await fetch('/api/experiment/create', {method: 'POST', body: JSON.stringify({data})});
+  if (!res.ok) {
+    throw new Error('Error creating experiment');
+  }
+  // TODO: User feedback for success and failure
+  callback();
+};
 
 const ExperimentCreate: React.FC = () => {
-  const handleSubmit = async () => {
-    const res = await fetch('/api/experiment/create', {method: 'POST', body: JSON.stringify(formState)});
-    console.log('res', res);
-  };
-  const [formState, setFormState] = useState<{name: string}>({name: ''});
-
+  const router = useRouter();
   return (
     <Layout>
       <div className="page">
         <h1>New experiment</h1>
         <main>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-          >
-            {InputGenerator([
-              {
-                label: 'Name',
-                name: 'name',
-                id: 'name',
-                type: 'text',
-                required: true,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState[e.target.name] = e.target.value;
-                  setFormState(newState);
-                },
-              },
-            ])}
-            <button type="submit">Create</button>
-          </form>
+          <ExperimentCreateUpdateForm
+            handleSubmit={(formState) => handleSubmit(formState, () => router.push(`/experiments`))}
+          />
         </main>
       </div>
     </Layout>
