@@ -6,7 +6,8 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc -p tsconfig.json --noEmit --noErrorTruncation --diagnostics"
+    "typecheck": "tsc -p tsconfig.json --noEmit --noErrorTruncation --diagnostics",
+    "lint": "eslint --ext .tsx,.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,8 @@
   "devDependencies": {
     "@types/node": "17.0.14",
     "@types/react": "17.0.38",
+    "eslint": "8.22.0",
+    "eslint-config-next": "12.2.5",
     "prisma": "^4.2.0",
     "typescript": "4.5.5"
   }
