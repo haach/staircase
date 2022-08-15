@@ -21,6 +21,8 @@ export interface Mouse extends dbBaseProps {
   gender: 'FEMALE' | 'MALE';
   deceasedAt?: Date;
   genoType?: string; // Specific genetic modification of the subject
+
+  Group: Group;
 }
 
 export interface Run extends dbBaseProps {

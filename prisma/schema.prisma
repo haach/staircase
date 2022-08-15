@@ -35,11 +35,9 @@ model Mouse {
 
   genoType String?
 
-  Experiment   Experiment? @relation(fields: [experimentId], references: [id])
-  experimentId String?
-  Run          Run[]
-  Group        Group?      @relation(fields: [groupId], references: [id])
-  groupId      String?
+  Group   Group?  @relation(fields: [groupId], references: [id])
+  groupId String?
+  Run     Run[]
 }
 
 model Group {
@@ -84,9 +82,6 @@ model Run {
 
   Session   Session? @relation(fields: [sessionId], references: [id])
   sessionId String?  @map(name: "session_id")
-
-  Experiment   Experiment? @relation(fields: [experimentId], references: [id])
-  experimentId String?     @map(name: "experiment_id")
 }
 
 model Session {
@@ -113,6 +108,4 @@ model Experiment {
 
   sessions Session[]
   groups   Group[]
-  Run      Run[]
-  Mouse    Mouse[]
 }
