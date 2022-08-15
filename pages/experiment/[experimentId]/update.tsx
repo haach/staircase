@@ -10,7 +10,25 @@ import {serialize} from 'utils';
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
     where: {id: params.experimentId as string},
-    include: {mice: true},
+    include: {
+      groups: {
+        orderBy: [
+          {
+            groupNumber: 'asc',
+          },
+        ],
+        include: {
+          mice: {
+            orderBy: [
+              {
+                mouseNumber: 'asc',
+              },
+            ],
+          },
+        },
+      },
+      sessions: true,
+    },
   });
   return {
     props: {
@@ -19,27 +37,29 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
   };
 };
 
-const handleSubmit = async (formState, callback: () => void) => {
+const handleSubmit = async (experiment) => {
   // TODO: Figure out how to use PRISMA transactions with fetch API in case something goes wrong
-  // disconnect all mice from experiment
-  const disconnectMice = await fetch('/api/experiment/update', {
-    method: 'POST',
-    body: JSON.stringify({
-      where: {id: formState.id},
-      data: {mice: {set: []}},
-    }),
-  });
-  // use create or connect to update experiment
   const updateExperiment = await fetch('/api/experiment/update', {
     method: 'POST',
     body: JSON.stringify({
-      where: {id: formState.id},
+      where: {id: experiment.id},
       data: {
-        name: formState.name,
-        mice: {
-          connectOrCreate: formState.mice.map((mouse) => ({
-            where: {id: mouse.id ?? ''},
-            create: {...mouse, experimentId: undefined},
+        name: experiment.name,
+        displayName: experiment.displayName,
+        groups: {
+          deleteMany: {},
+          connectOrCreate: experiment.groups.map((group) => ({
+            where: {id: group.id ?? ''},
+            create: {
+              ...group,
+              experimentId: undefined,
+              mice: {
+                connectOrCreate: group.mice.map((mouse) => ({
+                  where: {id: mouse.id ?? ''},
+                  create: {...mouse, groupId: undefined},
+                })),
+              },
+            },
           })),
         },
       },
@@ -49,8 +69,7 @@ const handleSubmit = async (formState, callback: () => void) => {
     throw new Error('Error updating experiment');
   }
   // TODO: User feedback for success and failure
-  alert('Changes saved');
-  callback();
+  return 'success';
 };
 
 type Props = {
@@ -66,7 +85,10 @@ const ExperimentUpdate: React.FC<Props> = (props) => {
         <main>
           <ExperimentCreateUpdateForm
             experiment={props.experiment}
-            handleSubmit={(formState) => handleSubmit(formState, () => router.push(`/experiments`))}
+            cancelURL={`/experiment/${props.experiment.id}`}
+            handleSubmit={(formState) =>
+              handleSubmit(formState).then(() => router.push(`/experiment/${props.experiment.id}`))
+            }
           />
         </main>
       </div>

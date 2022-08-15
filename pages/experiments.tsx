@@ -7,18 +7,38 @@ import Layout from '../components/Layout';
 import prisma from '../lib/prisma';
 import {serialize} from '../utils';
 
+const fetchArgs = {
+  orderBy: [
+    {
+      updatedAt: 'desc',
+    },
+    {
+      createdAt: 'desc',
+    },
+  ],
+  include: {
+    groups: {
+      orderBy: [
+        {
+          groupNumber: 'asc',
+        },
+      ],
+      include: {
+        mice: {
+          orderBy: [
+            {
+              mouseNumber: 'asc',
+            },
+          ],
+        },
+      },
+    },
+    sessions: true,
+  },
+};
+
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
-  const experimentList = await prisma.experiment.findMany({
-    include: {mice: true, sessions: true},
-    orderBy: [
-      {
-        updatedAt: 'desc',
-      },
-      {
-        createdAt: 'desc',
-      },
-    ],
-  });
+  const experimentList = await prisma.experiment.findMany(fetchArgs as Prisma.ExperimentFindManyArgs);
   return {
     props: {
       experimentList: serialize(experimentList),
@@ -27,20 +47,9 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 const getFreshExperimentList = async () => {
-  const data: Prisma.ExperimentFindManyArgs = {
-    include: {mice: true, sessions: true},
-    orderBy: [
-      {
-        updatedAt: 'desc',
-      },
-      {
-        createdAt: 'desc',
-      },
-    ],
-  };
   const res = await fetch('/api/experiment/readMany', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(fetchArgs),
   });
   if (!res.ok) {
     throw new Error('Error fetching experiment list');
@@ -83,10 +92,11 @@ const ExperimentOverview: React.FC<Props> = (props) => {
               <thead>
                 <tr>
                   <th>Name</th>
+                  <th>ID</th>
                   <th>Start date</th>
                   <th>Last updated</th>
                   <th>Sessions</th>
-                  <th>Mice</th>
+                  <th>Groups</th>
                   <th>Status</th>
                   <th></th>
                 </tr>
@@ -95,10 +105,11 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                 {experimentList.map((experiment) => (
                   <tr key={experiment.id} className="post">
                     <td>{experiment.name}</td>
+                    <td>{experiment.displayId}</td>
                     <td>{new Date(experiment.createdAt).toLocaleString()}</td>
                     <td>{new Date(experiment.updatedAt).toLocaleString()}</td>
                     <td>{experiment.sessions?.length ?? 0}</td>
-                    <td>{experiment.mice?.length ?? 0}</td>
+                    <td>{experiment.groups?.length ?? 0}</td>
                     <td>
                       {experiment.closedAt ? (
                         <span title={`Closed at ${experiment.closedAt.toLocaleString()}`}>closed</span>
@@ -107,22 +118,20 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                       )}
                     </td>
                     <td>
-                      {!experiment.closedAt && (
-                        <>
-                          <Link href={{pathname: `/experiment/${experiment.id}`}}>
-                            <a>View</a>
-                          </Link>
-                          <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
+                      <Link href={{pathname: `/experiment/${experiment.id}`}}>
+                        <a>View</a>
+                      </Link>
+                      {/*  <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
                             <a>Edit setup</a>
-                          </Link>
-                          <button
-                            onClick={() => {
-                              deleteExperiment(experiment.id).then(() => updateExperimentList());
-                            }}
-                          >
-                            Delete
-                          </button>
-                        </>
+                          </Link> */}
+                      {!experiment.closedAt && (
+                        <button
+                          onClick={() => {
+                            deleteExperiment(experiment.id).then(() => updateExperimentList());
+                          }}
+                        >
+                          Delete
+                        </button>
                       )}
                     </td>
                   </tr>

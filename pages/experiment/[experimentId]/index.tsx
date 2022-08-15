@@ -12,7 +12,22 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
     where: {id: params.experimentId as string},
     include: {
-      mice: true,
+      groups: {
+        orderBy: [
+          {
+            groupNumber: 'asc',
+          },
+        ],
+        include: {
+          mice: {
+            orderBy: [
+              {
+                mouseNumber: 'asc',
+              },
+            ],
+          },
+        },
+      },
       sessions: {
         include: {
           author: true,
@@ -88,12 +103,30 @@ const createNewSession = async (experimentId) => {
   return res.json();
 };
 
+const openCloseExperiment = async (experimentId, setClosed: boolean) => {
+  const updateExperiment = await fetch('/api/experiment/update', {
+    method: 'POST',
+    body: JSON.stringify({
+      where: {id: experimentId},
+      data: {
+        closedAt: setClosed ? new Date() : null,
+      },
+    }),
+  });
+  if (!updateExperiment.ok) {
+    throw new Error('Error updating experiment');
+  }
+  // TODO: User feedback for success and failure
+  return 'success';
+};
+
 type Props = {
   experiment: Experiment;
 };
 
 const ExperimentDetail: React.FC<Props> = (props) => {
   const [sessionList, setSessionList] = useState(props.experiment.sessions); // Initially use prerendered props
+  const [closed, setClosed] = useState<boolean>(props.experiment.closedAt !== null);
   const router = useRouter();
 
   const updateSessionList = () => {
@@ -104,16 +137,29 @@ const ExperimentDetail: React.FC<Props> = (props) => {
   return (
     <Layout>
       <div className="page">
-        <h1>Experiment: {props.experiment.name}</h1>
+        <h1>
+          Experiment: {props.experiment.name} {props.experiment.displayId} {closed && '🔓 closed'}
+        </h1>
 
         <p>Created {new Date(props.experiment.createdAt).toLocaleString()}</p>
         {!props.experiment.closedAt && <p>Last Updated {new Date(props.experiment.updatedAt).toLocaleString()}</p>}
-        {!!props.experiment.closedAt && (
-          <p>
-            Closed at {new Date(props.experiment.closedAt).toLocaleString()} <button>REOPEN</button>
-          </p>
-        )}
-        <p>Mice count: {props.experiment.mice?.length ?? 0}</p>
+        {!!props.experiment.closedAt && <p>Closed at {new Date(props.experiment.closedAt).toLocaleString()}</p>}
+        <p>{props.experiment.groups?.length ?? 0} groups</p>
+
+        <Link href={{pathname: `/experiment/${props.experiment.id}/update`}}>
+          <button disabled={closed}>Edit setup</button>
+        </Link>
+
+        <button
+          onClick={() => {
+            openCloseExperiment(props.experiment.id, !closed).then(() => {
+              setClosed(!closed);
+            });
+          }}
+        >
+          {closed ? 'Reopen experiment' : 'Close experiment'}
+        </button>
+
         <main>
           <h2>Sessions </h2>
           {sessionList.length < 1 && <div>There are no sessions in this experiment.</div>}
@@ -147,6 +193,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                         <a>View</a>
                       </Link>
                       <button
+                        disabled={closed}
                         onClick={() => {
                           deleteSession(session.id).then(() => updateSessionList());
                         }}
@@ -159,7 +206,10 @@ const ExperimentDetail: React.FC<Props> = (props) => {
               </tbody>
             </table>
           )}
-          <button onClick={() => createNewSession(props.experiment.id).then(() => updateSessionList())}>
+          <button
+            disabled={closed}
+            onClick={() => createNewSession(props.experiment.id).then(() => updateSessionList())}
+          >
             Start a new session
           </button>
         </main>
