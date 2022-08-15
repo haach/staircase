@@ -28,8 +28,8 @@ model Mouse {
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at") // set automatically
 
   pyratId     String    @map(name: "pyrat_id")
-  chipId      Int       @map(name: "chip_number")
-  groupNumber Int       @default(0) @map(name: "group_number")
+  mouseNumber Int       @default(0) @map(name: "mouse_number")
+  chipNumber  Int       @default(0) @map(name: "chip_number")
   gender      String
   deceasedAt  DateTime? @map(name: "deceasedd_at")
 
@@ -38,6 +38,20 @@ model Mouse {
   Experiment   Experiment? @relation(fields: [experimentId], references: [id])
   experimentId String?
   Run          Run[]
+  Group        Group?      @relation(fields: [groupId], references: [id])
+  groupId      String?
+}
+
+model Group {
+  id        String   @id @default(cuid()) // create cuid if no id is provided
+  createdAt DateTime @default(now()) @map(name: "created_at") // set automatically
+  updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at") // set automatically
+
+  groupNumber Int     @default(0) @map(name: "group_number")
+  mice        Mouse[]
+
+  Experiment   Experiment? @relation(fields: [experimentId], references: [id])
+  experimentId String?
 }
 
 model Run {
@@ -70,6 +84,9 @@ model Run {
 
   Session   Session? @relation(fields: [sessionId], references: [id])
   sessionId String?  @map(name: "session_id")
+
+  Experiment   Experiment? @relation(fields: [experimentId], references: [id])
+  experimentId String?     @map(name: "experiment_id")
 }
 
 model Session {
@@ -90,9 +107,12 @@ model Experiment {
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
 
-  name     String
-  closedAt DateTime? @map(name: "closed_at")
+  name      String
+  displayId String
+  closedAt  DateTime? @map(name: "closed_at")
 
   sessions Session[]
-  mice     Mouse[]
+  groups   Group[]
+  Run      Run[]
+  Mouse    Mouse[]
 }

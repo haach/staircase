@@ -9,10 +9,15 @@ export interface User extends dbBaseProps {
   email: string;
 }
 
+export interface Group extends dbBaseProps {
+  groupNumber: number;
+  mice: Mouse[];
+}
+
 export interface Mouse extends dbBaseProps {
   pyratId: string; // Internal ID
-  chipId: number; // number from 0 - 99
-  groupNumber: number; // number from 0 - 99
+  chipNumber: number; // number from 0 - 99
+  mouseNumber: number;
   gender: 'FEMALE' | 'MALE';
   deceasedAt?: Date;
   genoType?: string; // Specific genetic modification of the subject
@@ -41,6 +46,8 @@ export interface Run extends dbBaseProps {
   ls6: number;
   ls7: number;
   ls8: number;
+
+  Experiment: Experiment;
 }
 
 export interface Session extends dbBaseProps {
@@ -51,7 +58,8 @@ export interface Session extends dbBaseProps {
 
 export interface Experiment extends dbBaseProps {
   name: string;
+  displayId: string;
   closedAt?: Date;
   sessions?: Array<Session>;
-  mice?: Mouse[];
+  groups?: Group[];
 }
