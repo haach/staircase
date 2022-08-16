@@ -5,7 +5,7 @@ import {GetServerSideProps} from 'next';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react';
-import {Session} from 'types';
+import {Group, Mouse, Run, Session} from 'types';
 import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
@@ -13,13 +13,34 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
     where: {id: params.sessionId as string},
     include: {
       author: true,
-      runs: true,
-      Experiment: {select: {id: true, groups: true}},
+      runs: {
+        include: {
+          Mouse: true,
+        },
+      },
+      Experiment: {
+        select: {
+          id: true,
+          closedAt: true,
+          groups: {
+            select: {
+              _count: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  const groups = await prisma.group.findMany({
+    where: {experimentId: params.experimentId as string},
+    include: {
+      mice: true,
     },
   });
   return {
     props: {
       session: serialize(session),
+      groups: serialize(groups),
     },
   };
 };
@@ -35,6 +56,9 @@ const getFreshRuns = async (id) => {
         createdAt: 'desc',
       },
     ],
+    include: {
+      Mouse: true,
+    },
   };
   const res = await fetch('/api/run/readMany', {
     method: 'POST',
@@ -43,8 +67,7 @@ const getFreshRuns = async (id) => {
   if (!res.ok) {
     throw new Error('Error fetching runs');
   }
-  const sessionResponse = await res.json();
-  return sessionResponse;
+  return res.json();
 };
 
 const deleteRun = async (run_id) => {
@@ -58,9 +81,10 @@ const deleteRun = async (run_id) => {
   return res.json();
 };
 
-const createNewRun = async (sessionId) => {
+const createNewRun = async (sessionId, mouseId) => {
   const data: Prisma.RunCreateInput = {
     Session: {connect: {id: sessionId}},
+    Mouse: {connect: {id: mouseId}},
   };
   const res = await fetch('/api/run/create', {method: 'POST', body: JSON.stringify({data})});
   if (!res.ok) {
@@ -69,18 +93,52 @@ const createNewRun = async (sessionId) => {
   return res.json();
 };
 
+const markMouseAsDeceased = async (mouse_id) => {
+  const data: Prisma.MouseUpdateArgs = {
+    where: {id: mouse_id},
+    data: {
+      deceasedAt: new Date(),
+    },
+  };
+  const res = await fetch('/api/mouse/update', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    throw new Error('Error marking mouse as deceased');
+  }
+  return res.json();
+};
+
 type Props = {
   session: Session;
+  groups: Group[];
+};
+
+const getRunsPerGroup = (groups: Group[] = [], runs: Run[] = []) => {
+  // used to check if a mouse has already a recorded run
+  const miceIdOfRecordedRuns = runs.map((run) => run.Mouse.id);
+
+  return groups.map((group) => ({
+    ...group,
+    mice: group.mice.map((mouse) => ({
+      ...mouse,
+      run: miceIdOfRecordedRuns.includes(mouse.id) ? runs.find((run) => run.Mouse.id === mouse.id) : null,
+    })),
+  }));
 };
 
 const SessionDetail: React.FC<Props> = (props) => {
-  const [runList, setRunList] = useState(props.session.runs); // Initially use prerendered props
-  const router = useRouter();
+  const [runList, setRunList] = useState<Array<Run>>(props.session.runs); // Initially use prerendered props
+  const [structuredRunList, setStructuredRunList] = useState(getRunsPerGroup(props.groups, props.session.runs));
 
+  const router = useRouter();
   const updateRunList = () => {
     // Update session list and hydrate view
     getFreshRuns(props.session.id).then((data) => setRunList(data));
   };
+
+  console.log('structuredRunList', structuredRunList);
 
   return (
     <Layout>
@@ -90,50 +148,72 @@ const SessionDetail: React.FC<Props> = (props) => {
           Author: {props.session.author?.name} ({props.session.author?.email})
         </p>
         <main>
-          {runList.length < 1 && <div>There are no runs in this session.</div>}
-          {runList.length > 0 && (
-            <table>
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {runList.map((run, idx) => (
-                  <tr key={run.id} className="post">
-                    <td>{idx + 1}</td>
-                    <td>
-                      <Link href={{pathname: `${router.asPath}/run/${run.id}`}}>
-                        <a>View</a>
-                      </Link>
-                      <button
-                        onClick={() => {
-                          deleteRun(run.id).then(() => updateRunList());
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <button
-            onClick={() =>
-              createNewRun(props.session.id).then((res) => {
-                router.push(`${router.asPath}/run/${res.id}?runListLength=${runList.length}`);
-              })
-            }
-            disabled={props.session.Experiment.groups.length < 1}
-          >
-            Record a run
-          </button>
-          {props.session.Experiment.groups.length < 1 && (
+          {structuredRunList.map((group) => (
+            <div key={group.id}>
+              <h2>Group {group.groupNumber}</h2>
+              {group.mice?.length > 0 && (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Mouse No.</th>
+                      <th>Chip No.</th>
+                      <th>Gender</th>
+                      <th>Geno Type</th>
+                      <th>Deceased</th>
+                      <th>Recorded</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.mice.map((mouse) => (
+                      <tr key={mouse.id} className={mouse.run ? 'green' : 'grey'}>
+                        <td>{mouse.mouseNumber}</td>
+                        <td>{mouse.chipNumber}</td>
+                        <td>{mouse.gender}</td>
+                        <td>{mouse.genoType}</td>
+                        <td>
+                          {mouse.deceasedAt ?? (
+                            <button onClick={() => markMouseAsDeceased(mouse.id)}>Mark as deceased</button>
+                          )}
+                        </td>
+                        <td>
+                          {mouse.run ? (
+                            <>
+                              <Link href={{pathname: `${router.asPath}/run/${mouse.run.id}`}}>
+                                <a>View</a>
+                              </Link>
+                              <button
+                                disabled={!!props.session.Experiment.closedAt}
+                                onClick={() => {
+                                  deleteRun(mouse.run.id).then(() => updateRunList());
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() =>
+                                createNewRun(props.session.id, mouse.id).then((res) => {
+                                  router.push(`${router.asPath}/run/${res.id}`);
+                                })
+                              }
+                              disabled={!!props.session.Experiment.closedAt}
+                            >
+                              Record a run
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          ))}
+
+          {(!!props.session.Experiment.closedAt || props.session.Experiment.groups?._count < 1) && (
             <p>
-              ⚠️ This experiment is not properly set up yet. Please create groups and subjects before you start
-              recording data.{' '}
+              ⚠️ This experiment is not properly set up yet. Please create subjects before you start recording data.{' '}
               <Link href={`/experiment/${props.session.Experiment.id}/update`}>
                 <a>Go to experiment setup</a>
               </Link>
@@ -141,6 +221,14 @@ const SessionDetail: React.FC<Props> = (props) => {
           )}
         </main>
       </div>
+      <style jsx>{`
+        .grey {
+          color: grey;
+        }
+        .green {
+          color: green;
+        }
+      `}</style>
     </Layout>
   );
 };
