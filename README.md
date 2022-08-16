@@ -41,7 +41,7 @@ Features that are still missing for this to be functional:
 
 Project setup following example: https://vercel.com/guides/nextjs-prisma-postgres
 
-The frontend uses React and Next. The SQL database is hostedt on Heroku and I am using Prisma ORM as middleware. The Prisma Client is auto-generated and offers out of the box type-safety for the API. In my case it's being run from a serless function / Next API route hostet on Vercel. This is my first Prisma project so please bare with me, if you find any bad practices and simply drop me a dm. 
+The frontend uses React and Next, the SQL database is hostedt on Heroku and I am using Prisma ORM as a middleware. The Prisma Client is auto-generated and offers out of the box type-safety for the API - Check it out on [prisma.io](https://www.prisma.io/). In my case it's being run from a serverless function / Next API route hostet on Vercel. This is my first Prisma project so please bare with me, if you find any bad practices and simply drop me a dm. 
 
 Deployed on [Vercel](https://staircase-recorder.vercel.app/).
 
