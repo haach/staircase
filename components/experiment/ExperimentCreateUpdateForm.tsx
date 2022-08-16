@@ -33,7 +33,6 @@ type WithPartialMice<T> = Omit<T, 'mice'> & {mice?: Array<Partial<Mouse>>};
 type WithPartialGroups<T> = Omit<T, 'groups'> & {groups?: Array<Partial<WithPartialMice<Group>>>};
 
 const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
-  // const [formState, setFormState] = useState<Omit<Partial<Experiment>, 'groups'> & {groups?: Array<Partial<Group>>}>(
   const [formState, setFormState] = useState<Partial<WithPartialGroups<Experiment>>>(
     props.experiment ?? {
       name: '',
@@ -129,7 +128,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
             },
           },
         ])}
-        <label htmlFor={`${groupNumber.id}-mouse-${index}-gender  *`}>Gender</label>
+        <label htmlFor={`${groupNumber.id}-mouse-${index}-gender`}>Gender *</label>
         <select
           name={`${groupNumber.id}-mouse-${index}-gender`}
           id={`${groupNumber.id}-mouse-${index}-gender`}

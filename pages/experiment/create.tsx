@@ -1,63 +1,68 @@
-import {Experiment, Prisma} from '@prisma/client';
+import {Prisma} from '@prisma/client';
 import ExperimentCreateUpdateForm from 'components/experiment/ExperimentCreateUpdateForm';
 import Layout from 'components/Layout';
-import {group} from 'console';
 import {useRouter} from 'next/router';
-import React, {useState} from 'react';
+import React from 'react';
 
 const createExperiment = async (experiment) => {
-  const createExperiment = await fetch('/api/experiment/create', {
-    method: 'POST',
-    body: JSON.stringify({
-      data: {
-        name: experiment.name,
-        displayId: experiment.displayId,
-        groups: {
-          createMany: {
-            data: (experiment.groups ?? []).map((group) => ({
-              groupNumber: group.groupNumber,
-            })),
+  // Create groups with mice
+  const groups = await Promise.all(
+    experiment.groups.map(async (group) => {
+      // create Mice
+      const mice = await Promise.all(
+        group.mice.map(async (mouse) => {
+          const createMouseBody: Prisma.MouseCreateArgs = {
+            data: {
+              ...mouse,
+              groupId: group.id,
+            },
+          };
+          const createMouse = await fetch('/api/mouse/create', {
+            method: 'POST',
+            body: JSON.stringify(createMouseBody),
+          });
+          return await createMouse.json();
+        })
+      );
+
+      const createGroupBody: Prisma.GroupCreateArgs = {
+        data: {
+          ...group,
+          mice: {
+            connect: mice.map(({id}) => ({id})),
           },
         },
+        include: {
+          mice: true,
+        },
+      };
+
+      const createGroup = await fetch('/api/group/create', {
+        method: 'POST',
+        body: JSON.stringify(createGroupBody),
+      });
+
+      return await createGroup.json();
+    })
+  );
+  // Create experiment and connect previouslycreated groups
+  const createExperimentBody: Prisma.ExperimentCreateArgs = {
+    data: {
+      name: experiment.name,
+      displayId: experiment.displayId,
+      groups: {
+        connect: groups.map(({id}) => ({id})),
       },
-      include: {
-        groups: true,
-      },
-    }),
+    },
+  };
+  const createExperiment = await fetch('/api/experiment/create', {
+    method: 'POST',
+    body: JSON.stringify(createExperimentBody),
   });
   if (!createExperiment.ok) {
     throw new Error('Error creating experiment');
   }
-  return createExperiment
-    .json()
-    .then(async (res) => {
-      // Update groups with mice
-      for (const group of res.groups) {
-        if (!group.mice?.length) continue;
-        const body: Prisma.GroupUpdateArgs = {
-          where: {id: group.id},
-          data: {
-            mice: {
-              createMany: {
-                data: group.mice,
-              },
-            },
-          },
-        };
-        const updateGroups = await fetch('/api/group/update', {
-          method: 'POST',
-          body: JSON.stringify(body),
-        });
-        if (!updateGroups.ok) {
-          throw new Error('Error updating group ' + group.id);
-        }
-      }
-      return res;
-    })
-    .catch((err) => {
-      // TODO: User feedback for success and failure
-      throw new Error('Error creating experiment with nested groups: ' + err);
-    });
+  return await createExperiment.json();
 };
 
 const ExperimentCreate: React.FC = () => {
