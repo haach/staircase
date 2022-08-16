@@ -1,3 +1,4 @@
+import {Prisma} from '@prisma/client';
 import {InputGenerator} from 'components/InputGenerator';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
@@ -11,20 +12,21 @@ type Props = {
 };
 
 const setMouseDeceased = async (mouseId, setDeceased: boolean) => {
-  const updateExperiment = await fetch('/api/mouse/update', {
+  const body: Prisma.MouseUpdateArgs = {
+    where: {id: mouseId},
+    data: {
+      deceasedAt: setDeceased ? new Date() : null,
+    },
+  };
+  const res = await fetch('/api/mouse/update', {
     method: 'POST',
-    body: JSON.stringify({
-      where: {id: mouseId},
-      data: {
-        deceasedAt: setDeceased ? new Date() : null,
-      },
-    }),
+    body: JSON.stringify(body),
   });
-  if (!updateExperiment.ok) {
+  if (!res.ok) {
     throw new Error('Error updating mouse');
   }
   // TODO: User feedback for success and failure
-  return 'success';
+  return res.json();
 };
 
 type WithPartialMice<T> = Omit<T, 'mice'> & {mice?: Array<Partial<Mouse>>};

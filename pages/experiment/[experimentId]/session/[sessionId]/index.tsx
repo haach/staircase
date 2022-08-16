@@ -46,7 +46,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 const getFreshRuns = async (id) => {
-  const data: Prisma.RunFindManyArgs = {
+  const body: Prisma.RunFindManyArgs = {
     where: {sessionId: id},
     orderBy: [
       {
@@ -62,7 +62,7 @@ const getFreshRuns = async (id) => {
   };
   const res = await fetch('/api/run/readMany', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     throw new Error('Error fetching runs');
@@ -71,10 +71,10 @@ const getFreshRuns = async (id) => {
 };
 
 const deleteRun = async (run_id) => {
-  const data: Prisma.RunDeleteArgs = {
+  const body: Prisma.RunDeleteArgs = {
     where: {id: run_id},
   };
-  const res = await fetch('/api/run/delete', {method: 'POST', body: JSON.stringify(data)});
+  const res = await fetch('/api/run/delete', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
     throw new Error('Error deleting run ' + run_id);
   }
@@ -82,11 +82,13 @@ const deleteRun = async (run_id) => {
 };
 
 const createNewRun = async (sessionId, mouseId) => {
-  const data: Prisma.RunCreateInput = {
-    Session: {connect: {id: sessionId}},
-    Mouse: {connect: {id: mouseId}},
+  const body: Prisma.RunCreateArgs = {
+    data: {
+      Session: {connect: {id: sessionId}},
+      Mouse: {connect: {id: mouseId}},
+    },
   };
-  const res = await fetch('/api/run/create', {method: 'POST', body: JSON.stringify({data})});
+  const res = await fetch('/api/run/create', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
     throw new Error('Error creating run');
   }
@@ -94,7 +96,7 @@ const createNewRun = async (sessionId, mouseId) => {
 };
 
 const markMouseAsDeceased = async (mouse_id) => {
-  const data: Prisma.MouseUpdateArgs = {
+  const body: Prisma.MouseUpdateArgs = {
     where: {id: mouse_id},
     data: {
       deceasedAt: new Date(),
@@ -102,7 +104,7 @@ const markMouseAsDeceased = async (mouse_id) => {
   };
   const res = await fetch('/api/mouse/update', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     throw new Error('Error marking mouse as deceased');

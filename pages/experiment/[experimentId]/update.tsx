@@ -1,3 +1,4 @@
+import {Prisma} from '@prisma/client';
 import ExperimentCreateUpdateForm from 'components/experiment/ExperimentCreateUpdateForm';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
@@ -38,38 +39,39 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 const handleSubmit = async (experiment) => {
-  // TODO: Figure out how to use PRISMA transactions with fetch API in case something goes wrong
-  const updateExperiment = await fetch('/api/experiment/update', {
-    method: 'POST',
-    body: JSON.stringify({
-      where: {id: experiment.id},
-      data: {
-        name: experiment.name,
-        displayName: experiment.displayName,
-        groups: {
-          deleteMany: {},
-          connectOrCreate: experiment.groups.map((group) => ({
-            where: {id: group.id ?? ''},
-            create: {
-              ...group,
-              experimentId: undefined,
-              mice: {
-                connectOrCreate: group.mice.map((mouse) => ({
-                  where: {id: mouse.id ?? ''},
-                  create: {...mouse, groupId: undefined},
-                })),
-              },
+  const body: Prisma.ExperimentUpdateArgs = {
+    where: {id: experiment.id},
+    data: {
+      name: experiment.name,
+      displayId: experiment.displayId,
+      groups: {
+        deleteMany: {},
+        connectOrCreate: experiment.groups.map((group) => ({
+          where: {id: group.id ?? ''},
+          create: {
+            ...group,
+            experimentId: undefined,
+            mice: {
+              connectOrCreate: group.mice.map((mouse) => ({
+                where: {id: mouse.id ?? ''},
+                create: {...mouse, groupId: undefined},
+              })),
             },
-          })),
-        },
+          },
+        })),
       },
-    }),
+    },
+  };
+  // TODO: Figure out how to use PRISMA transactions with fetch API in case something goes wrong
+  const res = await fetch('/api/experiment/update', {
+    method: 'POST',
+    body: JSON.stringify(body),
   });
-  if (!updateExperiment.ok) {
+  if (!res.ok) {
     throw new Error('Error updating experiment');
   }
   // TODO: User feedback for success and failure
-  return 'success';
+  return res.json();
 };
 
 type Props = {

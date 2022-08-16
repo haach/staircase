@@ -24,7 +24,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 export const getGroupsByExperimentId = async (experimentId): Promise<Array<Mouse>> => {
-  const data: Prisma.GroupFindManyArgs = {
+  const body: Prisma.GroupFindManyArgs = {
     where: {experimentId},
     orderBy: [
       {
@@ -43,7 +43,7 @@ export const getGroupsByExperimentId = async (experimentId): Promise<Array<Mouse
   };
   const res = await fetch('/api/mouse/readMany', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     throw new Error('Error fetching mice');
@@ -51,89 +51,24 @@ export const getGroupsByExperimentId = async (experimentId): Promise<Array<Mouse
   return res.json();
 };
 
-const linkMouseToRun = async (experimentId, mouseId) => {
-  const data: Prisma.RunUpdateArgs = {
-    where: {id: experimentId},
-    data: {
-      Mouse: {
-        connect: {
-          id: mouseId,
-        },
-      },
-    },
-  };
-  const res = await fetch('/api/run/update', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    throw new Error('Error connecting mouse to run');
-  }
-  return res.json();
-};
-
-/* const getFreshRuns = async (id) => {
-  const data: Prisma.RunFindManyArgs = {
-    where: {sessionId: id},
-    orderBy: [
-      {
-        updatedAt: 'desc',
-      },
-      {
-        createdAt: 'desc',
-      },
-    ],
-  };
-  const res = await fetch('/api/run/readMany', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    throw new Error('Error fetching runs');
-  }
-  const sessionResponse = await res.json();
-  return sessionResponse;
-}; */
-
-/* const deleteRun = async (session_id) => {
-  const data: Prisma.RunDeleteArgs = {
-    where: {id: session_id},
-  };
-  const res = await fetch('/api/run/delete', {method: 'POST', body: JSON.stringify(data)});
-  if (!res.ok) {
-    throw new Error('Error deleting run ' + session_id);
-  }
-  return res.json();
-}; */
-
-/* const createNewRun = async (sessionId) => {
-  const data: Prisma.RunCreateInput = {
-    Session: {connect: {id: sessionId}},
-  };
-  const res = await fetch('/api/run/create', {method: 'POST', body: JSON.stringify({data})});
-  if (!res.ok) {
-    throw new Error('Error creating run');
-  }
-  return res.json();
-}; */
-
 type Props = {
   run: Run;
 };
 
-const handleSubmit = async (formState) => {
-  const updateRun = await fetch('/api/run/update', {
+const handleSubmit = async (forrmState) => {
+  const body: Prisma.RunUpdateArgs = {
+    where: {id: forrmState.id},
+    data: {...forrmState, Mouse: undefined},
+  };
+  const res = await fetch('/api/run/update', {
     method: 'POST',
-    body: JSON.stringify({
-      where: {id: formState.id},
-      data: {...formState, Mouse: undefined},
-    }),
+    body: JSON.stringify(body),
   });
-  if (!updateRun.ok) {
+  if (!res.ok) {
     throw new Error('Error updating experiment');
   }
   // TODO: User feedback for success and failure
-  return 'success';
+  return res.json();
 };
 
 const RunDetail: React.FC<Props> = (props) => {
@@ -150,6 +85,7 @@ const RunDetail: React.FC<Props> = (props) => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              // TODO: Check validity of form input
               handleSubmit(formState).then(() =>
                 router.push(`/experiment/${router.query.experimentId}/session/${router.query.sessionId}`)
               );

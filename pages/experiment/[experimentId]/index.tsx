@@ -44,7 +44,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 const getFreshSessions = async (id) => {
-  const data: Prisma.SessionFindManyArgs = {
+  const body: Prisma.SessionFindManyArgs = {
     where: {experimentId: id},
     include: {
       author: true,
@@ -61,20 +61,19 @@ const getFreshSessions = async (id) => {
   };
   const res = await fetch('/api/session/readMany', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     throw new Error('Error fetching sesions');
   }
-  const sessionResponse = await res.json();
-  return sessionResponse;
+  return res.json();
 };
 
 const deleteSession = async (session_id) => {
-  const data: Prisma.SessionDeleteArgs = {
+  const body: Prisma.SessionDeleteArgs = {
     where: {id: session_id},
   };
-  const res = await fetch('/api/session/delete', {method: 'POST', body: JSON.stringify(data)});
+  const res = await fetch('/api/session/delete', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
     throw new Error('Error deleting sesion ' + session_id);
   }
@@ -82,21 +81,23 @@ const deleteSession = async (session_id) => {
 };
 
 const createNewSession = async (experimentId) => {
-  const data: Prisma.SessionCreateInput = {
-    author: {
-      connect: {
-        // Hard code for now before we have Auth
-        // TODO: Fix later
-        id: 'cl6nyyt2c003715gxk49nm5gi',
+  const body: Prisma.SessionCreateArgs = {
+    data: {
+      author: {
+        connect: {
+          // Hard code for now before we have Auth
+          // TODO: Fix later
+          id: 'cl6nyyt2c003715gxk49nm5gi',
+        },
       },
-    },
-    Experiment: {
-      connect: {
-        id: experimentId,
+      Experiment: {
+        connect: {
+          id: experimentId,
+        },
       },
     },
   };
-  const res = await fetch('/api/session/create', {method: 'POST', body: JSON.stringify({data})});
+  const res = await fetch('/api/session/create', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
     throw new Error('Error creating run');
   }
@@ -104,20 +105,21 @@ const createNewSession = async (experimentId) => {
 };
 
 const openCloseExperiment = async (experimentId, setClosed: boolean) => {
-  const updateExperiment = await fetch('/api/experiment/update', {
+  const body: Prisma.ExperimentUpdateArgs = {
+    where: {id: experimentId},
+    data: {
+      closedAt: setClosed ? new Date() : null,
+    },
+  };
+  const res = await fetch('/api/experiment/update', {
     method: 'POST',
-    body: JSON.stringify({
-      where: {id: experimentId},
-      data: {
-        closedAt: setClosed ? new Date() : null,
-      },
-    }),
+    body: JSON.stringify(body),
   });
-  if (!updateExperiment.ok) {
+  if (!res.ok) {
     throw new Error('Error updating experiment');
   }
   // TODO: User feedback for success and failure
-  return 'success';
+  return res.json();
 };
 
 type Props = {

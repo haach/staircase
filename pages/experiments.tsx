@@ -7,7 +7,7 @@ import Layout from '../components/Layout';
 import prisma from '../lib/prisma';
 import {serialize} from '../utils';
 
-const fetchArgs = {
+const fetchExperimentListArgs = {
   orderBy: [
     {
       updatedAt: 'desc',
@@ -38,7 +38,7 @@ const fetchArgs = {
 };
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
-  const experimentList = await prisma.experiment.findMany(fetchArgs as Prisma.ExperimentFindManyArgs);
+  const experimentList = await prisma.experiment.findMany(fetchExperimentListArgs as Prisma.ExperimentFindManyArgs);
   return {
     props: {
       experimentList: serialize(experimentList),
@@ -49,7 +49,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 const getFreshExperimentList = async () => {
   const res = await fetch('/api/experiment/readMany', {
     method: 'POST',
-    body: JSON.stringify(fetchArgs),
+    body: JSON.stringify(fetchExperimentListArgs),
   });
   if (!res.ok) {
     throw new Error('Error fetching experiment list');
@@ -58,10 +58,10 @@ const getFreshExperimentList = async () => {
 };
 
 const deleteExperiment = async (experiment_id) => {
-  const data: Prisma.ExperimentDeleteArgs = {
+  const body: Prisma.ExperimentDeleteArgs = {
     where: {id: experiment_id},
   };
-  const res = await fetch('/api/experiment/delete', {method: 'POST', body: JSON.stringify(data)});
+  const res = await fetch('/api/experiment/delete', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
     throw new Error('Error deleting sesion ' + experiment_id);
   }

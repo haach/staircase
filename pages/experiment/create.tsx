@@ -28,13 +28,13 @@ const createExperiment = async (experiment) => {
   if (!createExperiment.ok) {
     throw new Error('Error creating experiment');
   }
-  createExperiment.json().then(async (res) => {
-    // Update groups with mice
-    for (const group of res.groups) {
-      if (!group.mice?.length) continue;
-      const updateGroups = await fetch('/api/group/update', {
-        method: 'POST',
-        body: JSON.stringify({
+  return createExperiment
+    .json()
+    .then(async (res) => {
+      // Update groups with mice
+      for (const group of res.groups) {
+        if (!group.mice?.length) continue;
+        const body: Prisma.GroupUpdateArgs = {
           where: {id: group.id},
           data: {
             mice: {
@@ -43,15 +43,21 @@ const createExperiment = async (experiment) => {
               },
             },
           },
-        }),
-      });
-      if (!updateGroups.ok) {
-        throw new Error('Error updating group ' + group.id);
+        };
+        const updateGroups = await fetch('/api/group/update', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+        if (!updateGroups.ok) {
+          throw new Error('Error updating group ' + group.id);
+        }
       }
-    }
-  });
-  // TODO: User feedback for success and failure
-  return 'success';
+      return res;
+    })
+    .catch((err) => {
+      // TODO: User feedback for success and failure
+      throw new Error('Error creating experiment with nested groups: ' + err);
+    });
 };
 
 const ExperimentCreate: React.FC = () => {
@@ -64,7 +70,9 @@ const ExperimentCreate: React.FC = () => {
         <main>
           <ExperimentCreateUpdateForm
             cancelURL={'/experiments'}
-            handleSubmit={(formState) => createExperiment(formState).then(() => router.push('/experiments'))}
+            handleSubmit={(formState) =>
+              createExperiment(formState).then((res) => router.push(`/experiment/${res.id}`))
+            }
           />
         </main>
       </div>
