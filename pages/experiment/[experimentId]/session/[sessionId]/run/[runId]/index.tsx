@@ -14,6 +14,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
     where: {id: params.runId as string},
     include: {
       Mouse: {include: {Group: {select: {groupNumber: true}}}},
+      Session: {include: {Experiment: {select: {closedAt: true}}}},
     },
   });
   return {
@@ -103,6 +104,7 @@ const RunDetail: React.FC<Props> = (props) => {
                   max: 8,
                   defaultValue: pellets,
                   required: true,
+                  readOnly: !!props.run.Session.Experiment.closedAt,
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
                     newState.right[idx] = Number(e.target.value);
@@ -123,6 +125,7 @@ const RunDetail: React.FC<Props> = (props) => {
                   max: 8,
                   defaultValue: pellets,
                   required: true,
+                  readOnly: !!props.run.Session.Experiment.closedAt,
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
                     newState.left[idx] = Number(e.target.value);
@@ -134,7 +137,9 @@ const RunDetail: React.FC<Props> = (props) => {
             <Link href={`/experiment/${router.query.experimentId}/session/${router.query.sessionId}`}>
               <button type="button">Cancel</button>
             </Link>
-            <button type="submit">Done</button>
+            <button type="submit" disabled={!!props.run.Session.Experiment.closedAt}>
+              Done
+            </button>
           </form>
         </main>
       </div>

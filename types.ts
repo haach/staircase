@@ -35,7 +35,7 @@ export interface Run extends dbBaseProps {
   // Left steps 0 - 8
   left: Array<number>;
 
-  Experiment: Experiment;
+  Session: Session;
 }
 
 export interface Session extends dbBaseProps {

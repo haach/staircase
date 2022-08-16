@@ -21,6 +21,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
       Experiment: {
         select: {
           id: true,
+          name: true,
           closedAt: true,
           groups: {
             select: {
@@ -171,7 +172,12 @@ const SessionDetail: React.FC<Props> = (props) => {
                         <td>{mouse.genoType}</td>
                         <td>
                           {mouse.deceasedAt ?? (
-                            <button onClick={() => markMouseAsDeceased(mouse.id)}>Mark as deceased</button>
+                            <button
+                              disabled={!!props.session.Experiment.closedAt}
+                              onClick={() => markMouseAsDeceased(mouse.id)}
+                            >
+                              Mark as deceased
+                            </button>
                           )}
                         </td>
                         <td>
@@ -210,9 +216,20 @@ const SessionDetail: React.FC<Props> = (props) => {
             </div>
           ))}
 
-          {(!!props.session.Experiment.closedAt || props.session.Experiment.groups?._count < 1) && (
+          {(props.session.Experiment.groups?._count < 1 || props.session.Experiment.closedAt) && (
             <p>
-              ⚠️ This experiment is not properly set up yet. Please create subjects before you start recording data.{' '}
+              {props.session.Experiment.groups?._count < 1 && (
+                <>
+                  ⚠️ The experiment <b>{props.session.Experiment.name}</b> is not properly set up yet. Please create
+                  subjects before you start recording data.{' '}
+                </>
+              )}
+              {props.session.Experiment.closedAt && (
+                <>
+                  ⚠️ The experiment <b>{props.session.Experiment.name}</b> was concluded. If you want to add more data,
+                  it needs to be re-opened.{' '}
+                </>
+              )}
               <Link href={`/experiment/${props.session.Experiment.id}/update`}>
                 <a>Go to experiment setup</a>
               </Link>
