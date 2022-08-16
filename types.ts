@@ -4,6 +4,8 @@ interface dbBaseProps {
   updatedAt: Date;
 }
 
+type dbArray<T> = Array<T> & {_count: number};
+
 export interface User extends dbBaseProps {
   name: string;
   email: string;
@@ -11,7 +13,7 @@ export interface User extends dbBaseProps {
 
 export interface Group extends dbBaseProps {
   groupNumber: number;
-  mice: Mouse[];
+  mice: dbArray<Mouse>;
 }
 
 export interface Mouse extends dbBaseProps {
@@ -54,7 +56,7 @@ export interface Run extends dbBaseProps {
 
 export interface Session extends dbBaseProps {
   author: User;
-  runs: Array<Run>;
+  runs: dbArray<Run>;
   Experiment: Experiment;
 }
 
@@ -62,6 +64,6 @@ export interface Experiment extends dbBaseProps {
   name: string;
   displayId: string;
   closedAt?: Date;
-  sessions?: Array<Session>;
-  groups?: Group[];
+  sessions?: dbArray<Session>;
+  groups?: dbArray<Group>;
 }
