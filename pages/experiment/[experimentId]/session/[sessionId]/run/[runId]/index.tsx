@@ -137,27 +137,8 @@ const handleSubmit = async (formState) => {
 };
 
 const RunDetail: React.FC<Props> = (props) => {
-  const [formState, setFormState] = useState<Partial<Run>>(props.run ?? {});
-
+  const [formState, setFormState] = useState<Partial<Run>>(props.run);
   const router = useRouter();
-  const mouseId = Number(router.query.runListLength);
-
-  // Const used for iterator
-  const stairFields = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-
-  /* const prefillMouse = () => {
-    getGroupsByExperimentId(router.query.experimentId).then((res) => {
-      // Prefill the mouse with the next mouse in the experiment
-      const nextMouse = (): Mouse => {
-        if (runListLength > 0) {
-          if (runListLength < res.length) return res[runListLength];
-          else return res[res.length - 1];
-        } else return res[0];
-      };
-      linkMouseToRun(props.run.id, nextMouse().id);
-      setMouse(nextMouse());
-    });
-  }; */
 
   return (
     <Layout>
@@ -177,16 +158,18 @@ const RunDetail: React.FC<Props> = (props) => {
             <fieldset>
               <legend>Right paw:</legend>
               {InputGenerator(
-                stairFields.map((stair) => ({
-                  label: `Stair ${stair}`,
-                  name: `rs${stair}`,
-                  id: `rs${stair}`,
+                formState.right.map((pellets, idx) => ({
+                  label: `Stair ${idx}`,
+                  name: `right-stair-${idx}`,
+                  id: `right-stair-${idx}`,
                   type: 'number',
-                  defaultValue: 0,
+                  min: 0,
+                  max: 8,
+                  defaultValue: pellets,
                   required: true,
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
-                    newState[e.target.name] = Number(e.target.value);
+                    newState.right[idx] = Number(e.target.value);
                     setFormState(newState);
                   },
                 }))
@@ -195,16 +178,18 @@ const RunDetail: React.FC<Props> = (props) => {
             <fieldset>
               <legend>Left paw:</legend>
               {InputGenerator(
-                stairFields.map((stair) => ({
-                  label: `Stair ${stair}`,
-                  name: `ls${stair}`,
-                  id: `ls${stair}`,
+                formState.left.map((pellets, idx) => ({
+                  label: `Stair ${idx}`,
+                  name: `left-stair-${idx}`,
+                  id: `left-stair-${idx}`,
                   type: 'number',
-                  defaultValue: 0,
+                  min: 0,
+                  max: 8,
+                  defaultValue: pellets,
                   required: true,
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
-                    newState[e.target.name] = Number(e.target.value);
+                    newState.left[idx] = Number(e.target.value);
                     setFormState(newState);
                   },
                 }))

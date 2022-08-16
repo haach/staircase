@@ -57,25 +57,8 @@ model Run {
   createdAt DateTime @default(now()) @map(name: "created_at")
   updatedAt DateTime @default(now()) @updatedAt @map(name: "updated_at")
 
-  rs0 Int?
-  rs1 Int?
-  rs2 Int?
-  rs3 Int?
-  rs4 Int?
-  rs5 Int?
-  rs6 Int?
-  rs7 Int?
-  rs8 Int?
-
-  ls0 Int?
-  ls1 Int?
-  ls2 Int?
-  ls3 Int?
-  ls4 Int?
-  ls5 Int?
-  ls6 Int?
-  ls7 Int?
-  ls8 Int?
+  right Int[] @default([0, 0, 0, 0, 0, 0, 0, 0, 0])
+  left  Int[] @default([0, 0, 0, 0, 0, 0, 0, 0, 0])
 
   Mouse   Mouse?  @relation(fields: [mouseId], references: [id])
   mouseId String?

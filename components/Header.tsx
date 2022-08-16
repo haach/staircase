@@ -9,8 +9,8 @@ const BreadCrumb: React.FC<{
 }> = ({experimentId, sessionId, runId}) => {
   const experimentListLink = <Link href={`/experiments`}>Experiment list</Link>;
   const experimentLink = <Link href={`/experiment/${experimentId}`}>Experiment</Link>;
-  const SessionLink = <Link href={`/experiment/${experimentId}/`}>Session</Link>;
-  const RunLink = <Link href={`/experiment/${experimentId}/session/${sessionId}`}>Run</Link>;
+  const SessionLink = <Link href={`/experiment/${experimentId}/session/${sessionId}`}>Session</Link>;
+  const RunLink = <Link href={`/experiment/${experimentId}/session/${sessionId}/${runId}`}>Run</Link>;
 
   if (!experimentId) {
     return experimentListLink;

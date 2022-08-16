@@ -129,16 +129,13 @@ const getRunsPerGroup = (groups: Group[] = [], runs: Run[] = []) => {
 };
 
 const SessionDetail: React.FC<Props> = (props) => {
-  const [runList, setRunList] = useState<Array<Run>>(props.session.runs); // Initially use prerendered props
   const [structuredRunList, setStructuredRunList] = useState(getRunsPerGroup(props.groups, props.session.runs));
 
   const router = useRouter();
   const updateRunList = () => {
-    // Update session list and hydrate view
-    getFreshRuns(props.session.id).then((data) => setRunList(data));
+    // Update session and hydrate view
+    getFreshRuns(props.session.id).then((data) => setStructuredRunList(getRunsPerGroup(props.groups, data)));
   };
-
-  console.log('structuredRunList', structuredRunList);
 
   return (
     <Layout>

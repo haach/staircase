@@ -29,27 +29,11 @@ export interface Mouse extends dbBaseProps {
 
 export interface Run extends dbBaseProps {
   Mouse: Mouse;
-  // Right steps 0 - 8
-  rs0: number;
-  rs1: number;
-  rs2: number;
-  rs3: number;
-  rs4: number;
-  rs5: number;
-  rs6: number;
-  rs7: number;
-  rs8: number;
 
+  // Right steps 0 - 8
+  right: Array<number>;
   // Left steps 0 - 8
-  ls0: number;
-  ls1: number;
-  ls2: number;
-  ls3: number;
-  ls4: number;
-  ls5: number;
-  ls6: number;
-  ls7: number;
-  ls8: number;
+  left: Array<number>;
 
   Experiment: Experiment;
 }
