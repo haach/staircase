@@ -4,7 +4,7 @@ Deployed on [Vercel](https://staircase-recorder.vercel.app/).
 
 ## Background
 
-This project's goal is to support the employees of the [Department of Experimental Neurology](https://expneuro.charite.de/en/) with the recording of data  gathered within the so-called "staircase experiment" setup at their lab in Berlin. 
+This project's goal is to support the employees of the [Department of Experimental Neurology](https://expneuro.charite.de/en/) with the recording of data gathered from a behavioural test called the "staircase experiment" setup at their lab in Berlin. 
 
 ### The staircase experiment
 
