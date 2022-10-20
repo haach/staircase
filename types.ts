@@ -36,10 +36,10 @@ export interface Run extends dbBaseProps {
   left: Array<number>;
 
   Experiment: Experiment;
-  Session: Session;
+  RecordingSession: RecordingSession;
 }
 
-export interface Session extends dbBaseProps {
+export interface RecordingSession extends dbBaseProps {
   author: User;
   runs: dbArray<Run>;
   Experiment: Experiment;
@@ -49,6 +49,6 @@ export interface Experiment extends dbBaseProps {
   name: string;
   displayId: string;
   closedAt?: Date;
-  sessions?: dbArray<Session>;
+  recordingSessions?: dbArray<RecordingSession>;
   groups?: dbArray<Group>;
 }

@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
           },
         },
       },
-      sessions: {
+      recordingSessions: {
         include: {
           author: true,
           runs: true,
@@ -44,7 +44,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 const getFreshSessions = async (id) => {
-  const body: Prisma.SessionFindManyArgs = {
+  const body: Prisma.RecordingSessionFindManyArgs = {
     where: {experimentId: id},
     include: {
       author: true,
@@ -59,7 +59,7 @@ const getFreshSessions = async (id) => {
       },
     ],
   };
-  const res = await fetch('/api/session/readMany', {
+  const res = await fetch('/api/recordingSession/readMany', {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -69,19 +69,19 @@ const getFreshSessions = async (id) => {
   return res.json();
 };
 
-const deleteSession = async (session_id) => {
+const deleteSession = async (recordingSession_id) => {
   const body: Prisma.SessionDeleteArgs = {
-    where: {id: session_id},
+    where: {id: recordingSession_id},
   };
-  const res = await fetch('/api/session/delete', {method: 'POST', body: JSON.stringify(body)});
+  const res = await fetch('/api/recordingSession/delete', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
-    throw new Error('Error deleting sesion ' + session_id);
+    throw new Error('Error deleting sesion ' + recordingSession_id);
   }
   return res.json();
 };
 
 const createNewSession = async (experimentId) => {
-  const body: Prisma.SessionCreateArgs = {
+  const body: Prisma.RecordingSessionCreateArgs = {
     data: {
       author: {
         connect: {
@@ -97,7 +97,7 @@ const createNewSession = async (experimentId) => {
       },
     },
   };
-  const res = await fetch('/api/session/create', {method: 'POST', body: JSON.stringify(body)});
+  const res = await fetch('/api/recordingSession/create', {method: 'POST', body: JSON.stringify(body)});
   if (!res.ok) {
     throw new Error('Error creating run');
   }
@@ -127,13 +127,13 @@ type Props = {
 };
 
 const ExperimentDetail: React.FC<Props> = (props) => {
-  const [sessionList, setSessionList] = useState(props.experiment.sessions); // Initially use prerendered props
+  const [recordingSessionList, setRecordingSessionList] = useState(props.experiment.recordingSessions); // Initially use prerendered props
   const [closed, setClosed] = useState<boolean>(props.experiment.closedAt !== null);
   const router = useRouter();
 
   const updateSessionList = () => {
-    // Update session list and hydrate view
-    getFreshSessions(props.experiment.id).then((data) => setSessionList(data));
+    // Update recordingSession list and hydrate view
+    getFreshSessions(props.experiment.id).then((data) => setRecordingSessionList(data));
   };
 
   return (
@@ -164,9 +164,9 @@ const ExperimentDetail: React.FC<Props> = (props) => {
 
         <main>
           <h2>Sessions </h2>
-          {sessionList.length < 1 && <div>There are no sessions in this experiment.</div>}
+          {recordingSessionList.length < 1 && <div>There are no sessions in this experiment.</div>}
 
-          {sessionList.length > 0 && (
+          {recordingSessionList.length > 0 && (
             <table>
               <thead>
                 <tr>
@@ -179,25 +179,25 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                 </tr>
               </thead>
               <tbody>
-                {sessionList.map((session, idx) => (
-                  <tr key={session.id} className="post">
+                {recordingSessionList.map((recordingSession, idx) => (
+                  <tr key={recordingSession.id} className="post">
                     <td>{idx + 1}</td>
                     <td>
-                      {session.author.name} ({session.author.email})
+                      {recordingSession.author.name} ({recordingSession.author.email})
                     </td>
 
-                    <td>{new Date(session.createdAt).toLocaleString()}</td>
-                    <td>{new Date(session.updatedAt).toLocaleString()}</td>
-                    <td>{session.runs?.length ?? 0}</td>
+                    <td>{new Date(recordingSession.createdAt).toLocaleString()}</td>
+                    <td>{new Date(recordingSession.updatedAt).toLocaleString()}</td>
+                    <td>{recordingSession.runs?.length ?? 0}</td>
 
                     <td>
-                      <Link href={{pathname: `${router.asPath}/session/${session.id}`}}>
+                      <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}}>
                         <a>View</a>
                       </Link>
                       <button
                         disabled={closed}
                         onClick={() => {
-                          deleteSession(session.id).then(() => updateSessionList());
+                          deleteSession(recordingSession.id).then(() => updateSessionList());
                         }}
                       >
                         Delete

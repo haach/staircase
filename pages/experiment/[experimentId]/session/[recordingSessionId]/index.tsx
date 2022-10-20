@@ -4,13 +4,13 @@ import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import React, {useEffect, useState} from 'react';
-import {Group, Mouse, Run, Session} from 'types';
+import React, {useState} from 'react';
+import {Group, RecordingSession, Run} from 'types';
 import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
-  const session = await prisma.session.findUnique({
-    where: {id: params.sessionId as string},
+  const recordingSession = await prisma.recordingSession.findUnique({
+    where: {id: params.recordingSessionId as string},
     include: {
       author: true,
       runs: {
@@ -40,7 +40,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
   });
   return {
     props: {
-      session: serialize(session),
+      recordingSession: serialize(recordingSession),
       groups: serialize(groups),
     },
   };
@@ -48,7 +48,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 
 const getFreshRuns = async (id) => {
   const body: Prisma.RunFindManyArgs = {
-    where: {sessionId: id},
+    where: {recordingSessionId: id},
     orderBy: [
       {
         updatedAt: 'desc',
@@ -82,10 +82,10 @@ const deleteRun = async (run_id) => {
   return res.json();
 };
 
-const createNewRun = async (sessionId, mouseId) => {
+const createNewRun = async (recordingSessionId, mouseId) => {
   const body: Prisma.RunCreateArgs = {
     data: {
-      Session: {connect: {id: sessionId}},
+      RecordingSession: {connect: {id: recordingSessionId}},
       Mouse: {connect: {id: mouseId}},
     },
   };
@@ -114,7 +114,7 @@ const markMouseAsDeceased = async (mouse_id) => {
 };
 
 type Props = {
-  session: Session;
+  recordingSession: RecordingSession;
   groups: Group[];
 };
 
@@ -131,21 +131,23 @@ const getRunsPerGroup = (groups: Group[] = [], runs: Run[] = []) => {
   }));
 };
 
-const SessionDetail: React.FC<Props> = (props) => {
-  const [structuredRunList, setStructuredRunList] = useState(getRunsPerGroup(props.groups, props.session.runs));
+const RecordingSessionDetail: React.FC<Props> = (props) => {
+  const [structuredRunList, setStructuredRunList] = useState(
+    getRunsPerGroup(props.groups, props.recordingSession.runs)
+  );
 
   const router = useRouter();
   const updateRunList = () => {
-    // Update session and hydrate view
-    getFreshRuns(props.session.id).then((data) => setStructuredRunList(getRunsPerGroup(props.groups, data)));
+    // Update recordingSession and hydrate view
+    getFreshRuns(props.recordingSession.id).then((data) => setStructuredRunList(getRunsPerGroup(props.groups, data)));
   };
 
   return (
     <Layout>
       <div className="page">
-        <h1>Session recording started on {new Date(props.session.createdAt).toLocaleDateString()}</h1>
+        <h1>Session recording started on {new Date(props.recordingSession.createdAt).toLocaleDateString()}</h1>
         <p>
-          Author: {props.session.author?.name} ({props.session.author?.email})
+          Author: {props.recordingSession.author?.name} ({props.recordingSession.author?.email})
         </p>
         <main>
           {structuredRunList.map((group) => (
@@ -173,7 +175,7 @@ const SessionDetail: React.FC<Props> = (props) => {
                         <td>
                           {mouse.deceasedAt ?? (
                             <button
-                              disabled={!!props.session.Experiment.closedAt}
+                              disabled={!!props.recordingSession.Experiment.closedAt}
                               onClick={() => markMouseAsDeceased(mouse.id)}
                             >
                               Mark as deceased
@@ -187,7 +189,7 @@ const SessionDetail: React.FC<Props> = (props) => {
                                 <a>View</a>
                               </Link>
                               <button
-                                disabled={!!props.session.Experiment.closedAt}
+                                disabled={!!props.recordingSession.Experiment.closedAt}
                                 onClick={() => {
                                   deleteRun(mouse.run.id).then(() => updateRunList());
                                 }}
@@ -198,11 +200,11 @@ const SessionDetail: React.FC<Props> = (props) => {
                           ) : (
                             <button
                               onClick={() =>
-                                createNewRun(props.session.id, mouse.id).then((res) => {
+                                createNewRun(props.recordingSession.id, mouse.id).then((res) => {
                                   router.push(`${router.asPath}/run/${res.id}`);
                                 })
                               }
-                              disabled={!!props.session.Experiment.closedAt}
+                              disabled={!!props.recordingSession.Experiment.closedAt}
                             >
                               Record a run
                             </button>
@@ -216,21 +218,21 @@ const SessionDetail: React.FC<Props> = (props) => {
             </div>
           ))}
 
-          {(props.session.Experiment.groups?._count < 1 || props.session.Experiment.closedAt) && (
+          {(props.recordingSession.Experiment.groups?._count < 1 || props.recordingSession.Experiment.closedAt) && (
             <p>
-              {props.session.Experiment.groups?._count < 1 && (
+              {props.recordingSession.Experiment.groups?._count < 1 && (
                 <>
-                  ⚠️ The experiment <b>{props.session.Experiment.name}</b> is not properly set up yet. Please create
-                  subjects before you start recording data.{' '}
+                  ⚠️ The experiment <b>{props.recordingSession.Experiment.name}</b> is not properly set up yet. Please
+                  create subjects before you start recording data.{' '}
                 </>
               )}
-              {props.session.Experiment.closedAt && (
+              {props.recordingSession.Experiment.closedAt && (
                 <>
-                  ⚠️ The experiment <b>{props.session.Experiment.name}</b> was concluded. If you want to add more data,
-                  it needs to be re-opened.{' '}
+                  ⚠️ The experiment <b>{props.recordingSession.Experiment.name}</b> was concluded. If you want to add
+                  more data, it needs to be re-opened.{' '}
                 </>
               )}
-              <Link href={`/experiment/${props.session.Experiment.id}/update`}>
+              <Link href={`/experiment/${props.recordingSession.Experiment.id}/update`}>
                 <a>Go to experiment setup</a>
               </Link>
             </p>
@@ -249,4 +251,4 @@ const SessionDetail: React.FC<Props> = (props) => {
   );
 };
 
-export default SessionDetail;
+export default RecordingSessionDetail;

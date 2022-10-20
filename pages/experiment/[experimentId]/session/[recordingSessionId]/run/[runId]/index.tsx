@@ -14,7 +14,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
     where: {id: params.runId as string},
     include: {
       Mouse: {include: {Group: {select: {groupNumber: true}}}},
-      Session: {include: {Experiment: {select: {closedAt: true}}}},
+      RecordingSession: {include: {Experiment: {select: {closedAt: true}}}},
     },
   });
   return {
@@ -88,7 +88,7 @@ const RunDetail: React.FC<Props> = (props) => {
               e.preventDefault();
               // TODO: Check validity of form input
               handleSubmit(formState).then(() =>
-                router.push(`/experiment/${router.query.experimentId}/session/${router.query.sessionId}`)
+                router.push(`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`)
               );
             }}
           >
@@ -104,7 +104,7 @@ const RunDetail: React.FC<Props> = (props) => {
                   max: 8,
                   defaultValue: pellets,
                   required: true,
-                  readOnly: !!props.run.Session.Experiment.closedAt,
+                  readOnly: !!props.run.RecordingSession.Experiment.closedAt,
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
                     newState.right[idx] = Number(e.target.value);
@@ -125,7 +125,7 @@ const RunDetail: React.FC<Props> = (props) => {
                   max: 8,
                   defaultValue: pellets,
                   required: true,
-                  readOnly: !!props.run.Session.Experiment.closedAt,
+                  readOnly: !!props.run.RecordingSession.Experiment.closedAt,
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
                     newState.left[idx] = Number(e.target.value);
@@ -134,10 +134,11 @@ const RunDetail: React.FC<Props> = (props) => {
                 }))
               )}
             </fieldset>
-            <Link href={`/experiment/${router.query.experimentId}/session/${router.query.sessionId}`}>
+            {console.log('router.query', router.query)}
+            <Link href={`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`}>
               <button type="button">Cancel</button>
             </Link>
-            <button type="submit" disabled={!!props.run.Session.Experiment.closedAt}>
+            <button type="submit" disabled={!!props.run.RecordingSession.Experiment.closedAt}>
               Done
             </button>
           </form>
