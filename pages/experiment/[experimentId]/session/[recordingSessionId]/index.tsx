@@ -173,7 +173,7 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                         <td>{mouse.gender}</td>
                         <td>{mouse.genoType}</td>
                         <td>
-                          {mouse.deceasedAt ?? (
+                          {!!mouse.deceasedAt ?? (
                             <button
                               disabled={!!props.recordingSession.Experiment.closedAt}
                               onClick={() => markMouseAsDeceased(mouse.id)}
