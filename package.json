@@ -24,7 +24,7 @@
     "react-markdown": "8.0.3"
   },
   "devDependencies": {
-    "@types/node": "17.0.14",
+    "@types/node": "18.11.3",
     "@types/react": "17.0.38",
     "eslint": "8.26.0",
     "eslint-config-next": "12.3.1",
