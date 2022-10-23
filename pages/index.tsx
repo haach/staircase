@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React from 'react';
 import Layout from '../components/Layout';
+import Image from 'next/image';
 
 const Index: React.FC = () => {
   const {data: session, status} = useSession();
@@ -13,6 +14,7 @@ const Index: React.FC = () => {
   return (
     <Layout>
       <div className="page">
+        <Image src="/favicon.svg" alt="Staircase recorder logo" width={200} height={200} />
         <h1>Staircase experiment recorder</h1>
         <nav>
           {status === 'loading' && <div>Loading login status...</div>}
