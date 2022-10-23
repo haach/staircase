@@ -2,6 +2,7 @@ import {Prisma} from '@prisma/client';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
+import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react';
@@ -80,16 +81,13 @@ const deleteSession = async (recordingSession_id) => {
   return res.json();
 };
 
-const createNewSession = async (experimentId) => {
+const createNewSession = async (session, experimentId) => {
+  if (!session?.user?.id) {
+    throw new Error('User id missing in session');
+  }
   const body: Prisma.RecordingSessionCreateArgs = {
     data: {
-      author: {
-        connect: {
-          // Hard code for now before we have Auth
-          // TODO: Fix later
-          id: 'cl6nyyt2c003715gxk49nm5gi',
-        },
-      },
+      author: {connect: {id: session.user.id}},
       Experiment: {
         connect: {
           id: experimentId,
@@ -130,6 +128,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
   const [recordingSessionList, setRecordingSessionList] = useState(props.experiment.recordingSessions); // Initially use prerendered props
   const [closed, setClosed] = useState<boolean>(props.experiment.closedAt !== null);
   const router = useRouter();
+  const {data: session} = useSession();
 
   const updateSessionList = () => {
     // Update recordingSession list and hydrate view
@@ -210,7 +209,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
           )}
           <button
             disabled={closed}
-            onClick={() => createNewSession(props.experiment.id).then(() => updateSessionList())}
+            onClick={() => createNewSession(session, props.experiment.id).then(() => updateSessionList())}
           >
             Start a new session
           </button>
