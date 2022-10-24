@@ -14,7 +14,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
     where: {id: params.runId as string},
     include: {
       Mouse: {include: {Group: {select: {groupNumber: true}}}},
-      Session: {include: {Experiment: {select: {closedAt: true}}}},
+      RecordingSession: {include: {Experiment: {select: {closedAt: true}}}},
     },
   });
   return {
@@ -88,58 +88,61 @@ const RunDetail: React.FC<Props> = (props) => {
               e.preventDefault();
               // TODO: Check validity of form input
               handleSubmit(formState).then(() =>
-                router.push(`/experiment/${router.query.experimentId}/session/${router.query.sessionId}`)
+                router.push(`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`)
               );
             }}
           >
-            <fieldset>
-              <legend>Right paw:</legend>
-              {InputGenerator(
-                formState.right.map((pellets, idx) => ({
-                  label: `Stair ${idx}`,
-                  name: `right-stair-${idx}`,
-                  id: `right-stair-${idx}`,
-                  type: 'number',
-                  min: 0,
-                  max: 8,
-                  defaultValue: pellets,
-                  required: true,
-                  readOnly: !!props.run.Session.Experiment.closedAt,
-                  onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                    const newState = {...formState};
-                    newState.right[idx] = Number(e.target.value);
-                    setFormState(newState);
-                  },
-                }))
-              )}
-            </fieldset>
-            <fieldset>
-              <legend>Left paw:</legend>
-              {InputGenerator(
-                formState.left.map((pellets, idx) => ({
-                  label: `Stair ${idx}`,
-                  name: `left-stair-${idx}`,
-                  id: `left-stair-${idx}`,
-                  type: 'number',
-                  min: 0,
-                  max: 8,
-                  defaultValue: pellets,
-                  required: true,
-                  readOnly: !!props.run.Session.Experiment.closedAt,
-                  onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                    const newState = {...formState};
-                    newState.left[idx] = Number(e.target.value);
-                    setFormState(newState);
-                  },
-                }))
-              )}
-            </fieldset>
-            <Link href={`/experiment/${router.query.experimentId}/session/${router.query.sessionId}`}>
-              <button type="button">Cancel</button>
-            </Link>
-            <button type="submit" disabled={!!props.run.Session.Experiment.closedAt}>
-              Done
-            </button>
+            <>
+              <fieldset>
+                <legend>Right paw:</legend>
+                {InputGenerator(
+                  formState.right.map((pellets, idx) => ({
+                    label: `Stair ${idx}`,
+                    name: `right-stair-${idx}`,
+                    id: `right-stair-${idx}`,
+                    type: 'number',
+                    min: 0,
+                    max: 8,
+                    defaultValue: pellets,
+                    required: true,
+                    readOnly: !!props.run.RecordingSession.Experiment.closedAt,
+                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                      const newState = {...formState};
+                      newState.right[idx] = Number(e.target.value);
+                      setFormState(newState);
+                    },
+                  }))
+                )}
+              </fieldset>
+              <fieldset>
+                <legend>Left paw:</legend>
+                {InputGenerator(
+                  formState.left.map((pellets, idx) => ({
+                    label: `Stair ${idx}`,
+                    name: `left-stair-${idx}`,
+                    id: `left-stair-${idx}`,
+                    type: 'number',
+                    min: 0,
+                    max: 8,
+                    defaultValue: pellets,
+                    required: true,
+                    readOnly: !!props.run.RecordingSession.Experiment.closedAt,
+                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                      const newState = {...formState};
+                      newState.left[idx] = Number(e.target.value);
+                      setFormState(newState);
+                    },
+                  }))
+                )}
+              </fieldset>
+              {console.log('router.query', router.query)}
+              <Link href={`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`}>
+                <button type="button">Cancel</button>
+              </Link>
+              <button type="submit" disabled={!!props.run.RecordingSession.Experiment.closedAt}>
+                Done
+              </button>
+            </>
           </form>
         </main>
       </div>

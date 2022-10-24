@@ -5,6 +5,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') {
     return res.status(405).json({message: 'Method not allowed'});
   }
-  const deletedSession = await prisma.session.delete(JSON.parse(req.body));
-  res.json(deletedSession);
+
+  const createdRecordingSession = await prisma.recordingSession.create(JSON.parse(req.body));
+  res.json(createdRecordingSession);
 };

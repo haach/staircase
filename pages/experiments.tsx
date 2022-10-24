@@ -33,7 +33,7 @@ const fetchExperimentListArgs = {
         },
       },
     },
-    sessions: true,
+    recordingSessions: true,
   },
 };
 
@@ -108,7 +108,7 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                     <td>{experiment.displayId}</td>
                     <td>{new Date(experiment.createdAt).toLocaleString()}</td>
                     <td>{new Date(experiment.updatedAt).toLocaleString()}</td>
-                    <td>{experiment.sessions?.length ?? 0}</td>
+                    <td>{experiment.recordingSessions?.length ?? 0}</td>
                     <td>{experiment.groups?.length ?? 0}</td>
                     <td>
                       {experiment.closedAt ? (

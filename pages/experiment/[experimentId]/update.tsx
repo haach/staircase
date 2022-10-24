@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
           },
         },
       },
-      sessions: true,
+      recordingSessions: true,
     },
   });
   return {
