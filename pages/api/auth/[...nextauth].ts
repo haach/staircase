@@ -16,5 +16,8 @@ const options: NextAuthOptions = {
   ],
   adapter: PrismaAdapter(prisma),
   secret: process.env.SECRET,
+  pages: {
+    signIn: '/signin',
+  },
   // debug: true,
 };
