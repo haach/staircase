@@ -1,17 +1,17 @@
-// middleware.ts
-export {default} from 'next-auth/middleware';
+import {NextResponse} from 'next/server';
+import type {NextRequest} from 'next/server';
+// export {default} from 'next-auth/middleware';
 
-// See https://nextjs.org/docs/advanced-features/middleware
-export const config = {
-  matcher: [
-    '/experiment/:path*',
-    '/experiments',
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - static (static files)
-     * - favicon.svg (favicon file)
-     */
-    /* '/((?!api|static|favicon.svg).*)', */
-  ],
-};
+export function middleware(request: NextRequest) {
+  const sessionCookie = request.cookies.get('next-auth.session-token');
+  if (!sessionCookie) {
+    // UNAUTHENTICATED
+    const url = request.nextUrl.clone();
+    url.pathname = '/api/auth/signin';
+    url.searchParams.set('callbackUrl', request.nextUrl.pathname);
+    return NextResponse.rewrite(url);
+  }
+}
+
+// Paths were middleware is activated
+export const config = {matcher: ['/experiment/:path*', '/experiments', '/^((?!favicon.svg).)*$']};
