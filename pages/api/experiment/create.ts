@@ -4,7 +4,7 @@ import {NextApiRequest, NextApiResponse} from 'next';
 import {Experiment} from 'types';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const experiment: Experiment = await JSON.parse(req.body);
+  const experiment: Experiment = JSON.parse(req.body);
 
   if (req.method !== 'POST') {
     return res.status(400).json({message: 'Method not allowed'});

@@ -8,7 +8,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).json({message: 'Method not allowed'});
   }
 
-  const id: RecordingSession['id'] = await JSON.parse(req.body);
+  const id: RecordingSession['id'] = req.body;
   if (!id) {
     return res.status(400).json({message: 'Invalid Input'});
   }
