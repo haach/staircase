@@ -58,10 +58,7 @@ const getFreshExperimentList = async () => {
 };
 
 const deleteExperiment = async (experiment_id) => {
-  const body: Prisma.ExperimentDeleteArgs = {
-    where: {id: experiment_id},
-  };
-  const res = await fetch('/api/experiment/delete', {method: 'POST', body: JSON.stringify(body)});
+  const res = await fetch('/api/experiment/delete', {method: 'POST', body: JSON.stringify(experiment_id)});
   if (!res.ok) {
     throw new Error('Error deleting sesion ' + experiment_id);
   }
