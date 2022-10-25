@@ -11,24 +11,6 @@ type Props = {
   handleSubmit(formState): void;
 };
 
-const setMouseDeceased = async (mouseId, setDeceased: boolean) => {
-  const body: Prisma.MouseUpdateArgs = {
-    where: {id: mouseId},
-    data: {
-      deceasedAt: setDeceased ? new Date() : null,
-    },
-  };
-  const res = await fetch('/api/mouse/update', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error('Error updating mouse');
-  }
-  // TODO: User feedback for success and failure
-  return res.json();
-};
-
 type WithPartialMice<T> = Omit<T, 'mice'> & {mice?: Array<Partial<Mouse>>};
 type WithPartialGroups<T> = Omit<T, 'groups'> & {groups?: Array<Partial<WithPartialMice<Group>>>};
 
@@ -156,7 +138,18 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
             },
           },
         ])}
-        {mouse.id && <button onClick={() => setMouseDeceased(mouse.id, true)}>Mark as deceased</button>}
+        {mouse.id && (
+          <button
+            type="button"
+            onClick={() => {
+              const newState = {...formState};
+              newState.groups[groupIdx].mice[index] = {...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()};
+              setFormState(newState);
+            }}
+          >
+            {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
+          </button>
+        )}
       </fieldset>
     ));
   };

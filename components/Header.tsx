@@ -4,13 +4,13 @@ import {useRouter} from 'next/router';
 
 const BreadCrumb: React.FC<{
   experimentId?: string;
-  sessionId?: string;
+  recordingSessionId?: string;
   runId?: string;
-}> = ({experimentId, sessionId, runId}) => {
+}> = ({experimentId, recordingSessionId, runId}) => {
   const experimentListLink = <Link href={`/experiments`}>Experiment list</Link>;
   const experimentLink = <Link href={`/experiment/${experimentId}`}>Experiment</Link>;
-  const SessionLink = <Link href={`/experiment/${experimentId}/session/${sessionId}`}>Session</Link>;
-  const RunLink = <Link href={`/experiment/${experimentId}/session/${sessionId}/${runId}`}>Run</Link>;
+  const SessionLink = <Link href={`/experiment/${experimentId}/session/${recordingSessionId}`}>Session</Link>;
+  const RunLink = <Link href={`/experiment/${experimentId}/session/${recordingSessionId}/${runId}`}>Run</Link>;
 
   if (!experimentId) {
     return experimentListLink;
@@ -28,7 +28,7 @@ const BreadCrumb: React.FC<{
       </div>
     );
   }
-  if (sessionId) {
+  if (recordingSessionId) {
     return (
       <div>
         {experimentListLink}
@@ -69,7 +69,7 @@ const Header: React.FC = () => {
       {router.pathname !== '/' && (
         <BreadCrumb
           experimentId={router.query.experimentId as string}
-          sessionId={router.query.sessionId as string}
+          recordingSessionId={router.query.recordingSessionId as string}
           runId={router.query.runId as string}
         />
       )}

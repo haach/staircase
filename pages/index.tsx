@@ -37,13 +37,6 @@ const Index: React.FC = () => {
             </>
           )}
         </nav>
-        <Link href={{pathname: '/experiments'}}>
-          <a data-active={isActive('/experiments')}>Experiment List</a>
-        </Link>{' '}
-        -{' '}
-        <Link href={{pathname: '/experiment/create'}}>
-          <a data-active={isActive('/experiments/create')}>Experiment create</a>
-        </Link>
       </div>
     </Layout>
   );

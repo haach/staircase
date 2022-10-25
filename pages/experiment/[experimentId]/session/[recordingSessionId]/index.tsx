@@ -47,23 +47,9 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 };
 
 const getFreshRuns = async (id) => {
-  const body: Prisma.RunFindManyArgs = {
-    where: {recordingSessionId: id},
-    orderBy: [
-      {
-        updatedAt: 'desc',
-      },
-      {
-        createdAt: 'desc',
-      },
-    ],
-    include: {
-      Mouse: true,
-    },
-  };
   const res = await fetch('/api/run/readMany', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: id,
   });
   if (!res.ok) {
     throw new Error('Error fetching runs');
@@ -72,10 +58,7 @@ const getFreshRuns = async (id) => {
 };
 
 const deleteRun = async (run_id) => {
-  const body: Prisma.RunDeleteArgs = {
-    where: {id: run_id},
-  };
-  const res = await fetch('/api/run/delete', {method: 'POST', body: JSON.stringify(body)});
+  const res = await fetch('/api/run/delete', {method: 'POST', body: run_id});
   if (!res.ok) {
     throw new Error('Error deleting run ' + run_id);
   }
@@ -83,29 +66,17 @@ const deleteRun = async (run_id) => {
 };
 
 const createNewRun = async (recordingSessionId, mouseId) => {
-  const body: Prisma.RunCreateArgs = {
-    data: {
-      RecordingSession: {connect: {id: recordingSessionId}},
-      Mouse: {connect: {id: mouseId}},
-    },
-  };
-  const res = await fetch('/api/run/create', {method: 'POST', body: JSON.stringify(body)});
+  const res = await fetch('/api/run/create', {method: 'POST', body: JSON.stringify({recordingSessionId, mouseId})});
   if (!res.ok) {
     throw new Error('Error creating run');
   }
   return res.json();
 };
 
-const markMouseAsDeceased = async (mouse_id) => {
-  const body: Prisma.MouseUpdateArgs = {
-    where: {id: mouse_id},
-    data: {
-      deceasedAt: new Date(),
-    },
-  };
+const updateMouse = async (mouse) => {
   const res = await fetch('/api/mouse/update', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify({...mouse, run: undefined}),
   });
   if (!res.ok) {
     throw new Error('Error marking mouse as deceased');
@@ -173,14 +144,13 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                         <td>{mouse.gender}</td>
                         <td>{mouse.genoType}</td>
                         <td>
-                          {!!mouse.deceasedAt ?? (
-                            <button
-                              disabled={!!props.recordingSession.Experiment.closedAt}
-                              onClick={() => markMouseAsDeceased(mouse.id)}
-                            >
-                              Mark as deceased
-                            </button>
-                          )}
+                          <button
+                            disabled={!!props.recordingSession.Experiment.closedAt}
+                            onClick={() => updateMouse({...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()})}
+                            // TODO: update mouse afterwards
+                          >
+                            {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
+                          </button>
                         </td>
                         <td>
                           {mouse.run ? (

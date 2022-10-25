@@ -1,12 +1,13 @@
 import {Prisma} from '@prisma/client';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
-import {GetServerSideProps} from 'next';
+import {GetServerSideProps, GetStaticProps} from 'next';
+import {Session} from 'next-auth';
 import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import React, {useEffect, useState} from 'react';
-import {Experiment} from 'types';
+import React, {useState} from 'react';
+import {Experiment, RecordingSession} from 'types';
 import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
@@ -44,25 +45,10 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
   };
 };
 
-const getFreshSessions = async (id) => {
-  const body: Prisma.RecordingSessionFindManyArgs = {
-    where: {experimentId: id},
-    include: {
-      author: true,
-      runs: true,
-    },
-    orderBy: [
-      {
-        updatedAt: 'desc',
-      },
-      {
-        createdAt: 'desc',
-      },
-    ],
-  };
+const getFreshRecordingSessions = async (id) => {
   const res = await fetch('/api/recordingSession/readMany', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify({experimentId: id}),
   });
   if (!res.ok) {
     throw new Error('Error fetching sesions');
@@ -70,48 +56,32 @@ const getFreshSessions = async (id) => {
   return res.json();
 };
 
-const deleteSession = async (recordingSession_id) => {
-  const body: Prisma.SessionDeleteArgs = {
-    where: {id: recordingSession_id},
-  };
-  const res = await fetch('/api/recordingSession/delete', {method: 'POST', body: JSON.stringify(body)});
+const deleteRecordingSession = async (recordingSession_id) => {
+  const res = await fetch('/api/recordingSession/delete', {method: 'POST', body: recordingSession_id});
   if (!res.ok) {
     throw new Error('Error deleting sesion ' + recordingSession_id);
   }
   return res.json();
 };
 
-const createNewSession = async (session, experimentId) => {
-  if (!session?.user?.id) {
-    throw new Error('User id missing in session');
+const createNewRecordingSession = async (session: Session, experimentId: string) => {
+  if (!session?.user?.email) {
+    throw new Error('User email missing in session');
   }
-  const body: Prisma.RecordingSessionCreateArgs = {
-    data: {
-      author: {connect: {id: session.user.id}},
-      Experiment: {
-        connect: {
-          id: experimentId,
-        },
-      },
-    },
-  };
-  const res = await fetch('/api/recordingSession/create', {method: 'POST', body: JSON.stringify(body)});
+  const res = await fetch('/api/recordingSession/create', {
+    method: 'POST',
+    body: JSON.stringify({experimentId, userEmail: session.user.email}),
+  });
   if (!res.ok) {
-    throw new Error('Error creating run');
+    throw new Error('Error creating recording session');
   }
   return res.json();
 };
 
-const openCloseExperiment = async (experimentId, setClosed: boolean) => {
-  const body: Prisma.ExperimentUpdateArgs = {
-    where: {id: experimentId},
-    data: {
-      closedAt: setClosed ? new Date() : null,
-    },
-  };
-  const res = await fetch('/api/experiment/update', {
+const openCloseExperiment = async (experiment: Experiment) => {
+  const res = await fetch('/api/experiment/close', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(experiment),
   });
   if (!res.ok) {
     throw new Error('Error updating experiment');
@@ -125,40 +95,40 @@ type Props = {
 };
 
 const ExperimentDetail: React.FC<Props> = (props) => {
-  const [recordingSessionList, setRecordingSessionList] = useState(props.experiment.recordingSessions); // Initially use prerendered props
-  const [closed, setClosed] = useState<boolean>(props.experiment.closedAt !== null);
+  const [experiment, setExperiment] = useState<Experiment>(props.experiment); // Initially use prerendered props
+  const [recordingSessionList, setRecordingSessionList] = useState(experiment.recordingSessions); // Initially use prerendered props
   const router = useRouter();
   const {data: session} = useSession();
 
-  const updateSessionList = () => {
+  const updateRecordingSessionList = () => {
     // Update recordingSession list and hydrate view
-    getFreshSessions(props.experiment.id).then((data) => setRecordingSessionList(data));
+    getFreshRecordingSessions(experiment.id).then((data) => setRecordingSessionList(data));
   };
 
   return (
     <Layout>
       <div className="page">
         <h1>
-          Experiment: {props.experiment.name} {props.experiment.displayId} {closed && '🔓 closed'}
+          Experiment: {experiment.name} {experiment.displayId} {!!experiment.closedAt && '🔓 closed'}
         </h1>
 
-        <p>Created {new Date(props.experiment.createdAt).toLocaleString()}</p>
-        {!props.experiment.closedAt && <p>Last Updated {new Date(props.experiment.updatedAt).toLocaleString()}</p>}
-        {!!props.experiment.closedAt && <p>Closed at {new Date(props.experiment.closedAt).toLocaleString()}</p>}
-        <p>{props.experiment.groups?.length ?? 0} groups</p>
+        <p>Created {new Date(experiment.createdAt).toLocaleString()}</p>
+        {!experiment.closedAt && <p>Last Updated {new Date(experiment.updatedAt).toLocaleString()}</p>}
+        {!!experiment.closedAt && <p>Closed at {new Date(experiment.closedAt).toLocaleString()}</p>}
+        <p>{experiment.groups?.length ?? 0} groups</p>
 
-        <Link href={{pathname: `/experiment/${props.experiment.id}/update`}}>
-          <button disabled={closed}>Edit setup</button>
+        <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
+          <button disabled={!!experiment.closedAt}>Edit setup</button>
         </Link>
 
         <button
           onClick={() => {
-            openCloseExperiment(props.experiment.id, !closed).then(() => {
-              setClosed(!closed);
+            openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then((res) => {
+              setExperiment({...experiment, ...res});
             });
           }}
         >
-          {closed ? 'Reopen experiment' : 'Close experiment'}
+          {!!experiment.closedAt ? 'Reopen experiment' : 'Close experiment'}
         </button>
 
         <main>
@@ -194,9 +164,9 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                         <a>View</a>
                       </Link>
                       <button
-                        disabled={closed}
+                        disabled={!!experiment.closedAt}
                         onClick={() => {
-                          deleteSession(recordingSession.id).then(() => updateSessionList());
+                          deleteRecordingSession(recordingSession.id).then(() => updateRecordingSessionList());
                         }}
                       >
                         Delete
@@ -208,8 +178,12 @@ const ExperimentDetail: React.FC<Props> = (props) => {
             </table>
           )}
           <button
-            disabled={closed}
-            onClick={() => createNewSession(session, props.experiment.id).then(() => updateSessionList())}
+            disabled={!!experiment.closedAt}
+            onClick={() =>
+              createNewRecordingSession(session, experiment.id).then(() => {
+                updateRecordingSessionList();
+              })
+            }
           >
             Start a new session
           </button>
