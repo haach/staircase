@@ -1,44 +1,14 @@
-import {Prisma} from '@prisma/client';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
-import React, {useEffect, useState} from 'react';
+import {prismaExperimentFindManyArgs} from 'pages/api/experiment/readMany';
+import React, {useState} from 'react';
 import {Experiment} from 'types';
 import Layout from '../components/Layout';
 import prisma from '../lib/prisma';
 import {serialize} from '../utils';
 
-const fetchExperimentListArgs = {
-  orderBy: [
-    {
-      updatedAt: 'desc',
-    },
-    {
-      createdAt: 'desc',
-    },
-  ],
-  include: {
-    groups: {
-      orderBy: [
-        {
-          groupNumber: 'asc',
-        },
-      ],
-      include: {
-        mice: {
-          orderBy: [
-            {
-              mouseNumber: 'asc',
-            },
-          ],
-        },
-      },
-    },
-    recordingSessions: true,
-  },
-};
-
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
-  const experimentList = await prisma.experiment.findMany(fetchExperimentListArgs as Prisma.ExperimentFindManyArgs);
+  const experimentList = await prisma.experiment.findMany(prismaExperimentFindManyArgs);
   return {
     props: {
       experimentList: serialize(experimentList),
@@ -49,7 +19,6 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 const getFreshExperimentList = async () => {
   const res = await fetch('/api/experiment/readMany', {
     method: 'POST',
-    body: JSON.stringify(fetchExperimentListArgs),
   });
   if (!res.ok) {
     throw new Error('Error fetching experiment list');
@@ -58,7 +27,7 @@ const getFreshExperimentList = async () => {
 };
 
 const deleteExperiment = async (experiment_id) => {
-  const res = await fetch('/api/experiment/delete', {method: 'POST', body: JSON.stringify(experiment_id)});
+  const res = await fetch('/api/experiment/delete', {method: 'POST', body: experiment_id});
   if (!res.ok) {
     throw new Error('Error deleting sesion ' + experiment_id);
   }
