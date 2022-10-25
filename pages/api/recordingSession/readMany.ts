@@ -7,8 +7,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).json({message: 'Method not allowed'});
   }
 
-  const body = JSON.parse(req.body);
-  const experimentId = body.experimentId;
+  const {experimentId} = JSON.parse(req.body);
 
   const prismaRecordingSessionFindManyArg: Prisma.RecordingSessionFindManyArgs = {
     include: {
