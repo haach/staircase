@@ -7,16 +7,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(405).json({message: 'Method not allowed'});
   }
   const experiment: Prisma.ExperimentUpdateInput = JSON.parse(req.body);
-  if (!experiment?.id) {
-    return res.status(400).json({message: 'Invalid Input'});
-  }
 
   const prismaExperimentUpdateArgs: Prisma.ExperimentUpdateArgs = {
     where: {
       id: experiment.id as string,
     },
     data: {
-      ...experiment,
+      closedAt: experiment.closedAt,
     },
   };
 

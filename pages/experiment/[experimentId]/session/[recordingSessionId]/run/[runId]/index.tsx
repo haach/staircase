@@ -24,49 +24,17 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
   };
 };
 
-export const getGroupsByExperimentId = async (experimentId): Promise<Array<Mouse>> => {
-  const body: Prisma.GroupFindManyArgs = {
-    where: {experimentId},
-    orderBy: [
-      {
-        groupNumber: 'asc',
-      },
-    ],
-    include: {
-      mice: {
-        orderBy: [
-          {
-            mouseNumber: 'asc',
-          },
-        ],
-      },
-    },
-  };
-  const res = await fetch('/api/mouse/readMany', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error('Error fetching mice');
-  }
-  return res.json();
-};
-
 type Props = {
   run: Run;
 };
 
 const handleSubmit = async (forrmState) => {
-  const body: Prisma.RunUpdateArgs = {
-    where: {id: forrmState.id},
-    data: {...forrmState, Mouse: undefined},
-  };
   const res = await fetch('/api/run/update', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(forrmState),
   });
   if (!res.ok) {
-    throw new Error('Error updating experiment');
+    throw new Error('Error updating run');
   }
   // TODO: User feedback for success and failure
   return res.json();

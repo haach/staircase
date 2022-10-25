@@ -8,6 +8,10 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const id: string = req.body;
+  if (!id) {
+    return res.status(400).json({message: 'Invalid Input'});
+  }
+
   const prismaExperimentFindUniqueArgs: Prisma.ExperimentFindUniqueArgs = {
     where: {
       id,

@@ -8,6 +8,9 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const mouse = JSON.parse(req.body);
+  if (!mouse?.id) {
+    return res.status(400).json({message: 'Invalid Input'});
+  }
 
   const prismaMouseUpdateArgs: Prisma.MouseUpdateArgs = {
     where: {id: mouse.id},

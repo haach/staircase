@@ -1,13 +1,15 @@
-import {Prisma} from '@prisma/client';
 import prisma from 'lib/prisma';
 import {NextApiRequest, NextApiResponse} from 'next';
 import {Experiment} from 'types';
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const id: Experiment['id'] = await JSON.parse(req.body);
-
   if (req.method !== 'POST') {
     return res.status(405).json({message: 'Method not allowed'});
+  }
+
+  const id: Experiment['id'] = await JSON.parse(req.body);
+  if (!id) {
+    return res.status(400).json({message: 'Invalid Input'});
   }
 
   const nestedGroups = await prisma.group.findMany({

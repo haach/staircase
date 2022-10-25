@@ -10,7 +10,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   const id: RecordingSession['id'] = await JSON.parse(req.body);
   if (!id) {
-    return res.status(405).json({message: 'Cannot delete session without id'});
+    return res.status(400).json({message: 'Invalid Input'});
   }
 
   const nestedRuns = await prisma.run.findMany({

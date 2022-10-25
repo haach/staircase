@@ -8,11 +8,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const {userEmail, experimentId} = JSON.parse(req.body);
 
-  if (!userEmail) {
-    return res.status(405).json({message: 'User email missing to create recording session'});
-  }
-  if (!experimentId) {
-    return res.status(405).json({message: 'Experiment ID missing to create recording session'});
+  if (!userEmail || !experimentId) {
+    return res.status(400).json({message: 'Invalid Input'});
   }
 
   const prismaRecordingSessionCreateArgs: Prisma.RecordingSessionCreateArgs = {
