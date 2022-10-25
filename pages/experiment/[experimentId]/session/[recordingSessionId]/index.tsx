@@ -96,16 +96,10 @@ const createNewRun = async (recordingSessionId, mouseId) => {
   return res.json();
 };
 
-const markMouseAsDeceased = async (mouse_id) => {
-  const body: Prisma.MouseUpdateArgs = {
-    where: {id: mouse_id},
-    data: {
-      deceasedAt: new Date(),
-    },
-  };
+const updateMouse = async (mouse) => {
   const res = await fetch('/api/mouse/update', {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(mouse),
   });
   if (!res.ok) {
     throw new Error('Error marking mouse as deceased');
@@ -173,14 +167,12 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                         <td>{mouse.gender}</td>
                         <td>{mouse.genoType}</td>
                         <td>
-                          {!!mouse.deceasedAt ?? (
-                            <button
-                              disabled={!!props.recordingSession.Experiment.closedAt}
-                              onClick={() => markMouseAsDeceased(mouse.id)}
-                            >
-                              Mark as deceased
-                            </button>
-                          )}
+                          <button
+                            disabled={!!props.recordingSession.Experiment.closedAt}
+                            onClick={() => updateMouse({...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()})}
+                          >
+                            {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
+                          </button>
                         </td>
                         <td>
                           {mouse.run ? (
