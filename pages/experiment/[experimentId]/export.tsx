@@ -91,7 +91,6 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
         run.left[8],
         run.left[0],
       ];
-      console.log('row', row);
       csvBody.push(...row);
     });
   });

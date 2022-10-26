@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
@@ -6,6 +7,7 @@ import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useState} from 'react';
+import {Button, Dropdown, Table} from 'react-bootstrap';
 import {CSVDownload, CSVLink} from 'react-csv';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
@@ -90,6 +92,14 @@ const openCloseExperiment = async (experiment: Experiment) => {
   return res.json();
 };
 
+const deleteExperiment = async (experiment_id) => {
+  const res = await fetch('/api/experiment/delete', {method: 'POST', body: experiment_id});
+  if (!res.ok) {
+    throw new Error('Error deleting sesion ' + experiment_id);
+  }
+  return res.json();
+};
+
 type Props = {
   experiment: Experiment;
 };
@@ -107,54 +117,88 @@ const ExperimentDetail: React.FC<Props> = (props) => {
 
   return (
     <Layout>
-      <div className="page">
-        <h1>
-          Experiment: {experiment.name} {experiment.displayId} {!!experiment.closedAt && '🔓 closed'}
-        </h1>
+      <main css={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
         <div>
-          <Link href={{pathname: `/experiment/${experiment.id}/export`}}>
-            <button>💾 Download experiment data</button>
-          </Link>
+          <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+            <h1>
+              {experiment.name} ({experiment.displayId}) {!!experiment.closedAt && '🔓'}
+            </h1>
+            <Dropdown>
+              <Dropdown.Toggle variant="secondary" size="sm" id="dropdown-basic">
+                MORE
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
+                  <Dropdown.Item disabled={!!experiment.closedAt}>✏️ Edit setup</Dropdown.Item>
+                </Link>
+                <Dropdown.Item
+                  onClick={() => {
+                    openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then(
+                      (res) => {
+                        setExperiment({...experiment, ...res});
+                      }
+                    );
+                  }}
+                >
+                  ✔ {!!experiment.closedAt ? 'Reopen' : 'Conclude'}
+                </Dropdown.Item>
+                <Link href={{pathname: `/experiment/${experiment.id}/export`}}>
+                  <Dropdown.Item>📥 Export</Dropdown.Item>
+                </Link>
+                <Dropdown.Divider />
+                <Dropdown.Item
+                  disabled={!!experiment.closedAt}
+                  onClick={() => {
+                    deleteExperiment(experiment.id).then(() => router.push('/experiments'));
+                  }}
+                  css={{color: 'darkred'}}
+                >
+                  🗑 Delete
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+
+          <div css={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+            <span>Created: {new Date(experiment.createdAt).toLocaleString()}</span>
+            {!experiment.closedAt && <span>Last updated:{new Date(experiment.updatedAt).toLocaleString()}</span>}
+            {!!experiment.closedAt && <span>Closed at {new Date(experiment.closedAt).toLocaleString()}</span>}
+          </div>
         </div>
 
-        <p>Created {new Date(experiment.createdAt).toLocaleString()}</p>
-        {!experiment.closedAt && <p>Last Updated {new Date(experiment.updatedAt).toLocaleString()}</p>}
-        {!!experiment.closedAt && <p>Closed at {new Date(experiment.closedAt).toLocaleString()}</p>}
-        <p>{experiment.groups?.length ?? 0} groups</p>
-
-        <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
-          <button disabled={!!experiment.closedAt}>Edit setup</button>
-        </Link>
-
-        <button
-          onClick={() => {
-            openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then((res) => {
-              setExperiment({...experiment, ...res});
-            });
-          }}
-        >
-          {!!experiment.closedAt ? 'Reopen experiment' : 'Close experiment'}
-        </button>
-
-        <main>
+        <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
           <h2>Sessions </h2>
-          {recordingSessionList.length < 1 && <div>There are no sessions in this experiment.</div>}
+          <Button
+            disabled={!!experiment.closedAt}
+            onClick={() =>
+              createNewRecordingSession(session, experiment.id).then(() => {
+                updateRecordingSessionList();
+              })
+            }
+          >
+            + Add Session
+          </Button>
+        </div>
 
-          {recordingSessionList.length > 0 && (
-            <table>
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th>Author</th>
-                  <th>Created at</th>
-                  <th>Last updated</th>
-                  <th>Runs</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {recordingSessionList.map((recordingSession, idx) => (
-                  <tr key={recordingSession.id} className="post">
+        {recordingSessionList.length < 1 && <p>🤷‍♀️ There are no sessions in this experiment.</p>}
+
+        {recordingSessionList.length > 0 && (
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Author</th>
+                <th>Created at</th>
+                <th>Last updated</th>
+                <th>Runs</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {recordingSessionList.map((recordingSession, idx) => (
+                <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}} key={recordingSession.id}>
+                  <tr css={{cursor: 'pointer'}}>
                     <td>{idx + 1}</td>
                     <td>
                       {recordingSession.author.name} ({recordingSession.author.email})
@@ -165,35 +209,25 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                     <td>{recordingSession.runs?.length ?? 0}</td>
 
                     <td>
-                      <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}}>
-                        <a>View</a>
-                      </Link>
-                      <button
+                      <Button
+                        variant="danger"
+                        size="sm"
                         disabled={!!experiment.closedAt}
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           deleteRecordingSession(recordingSession.id).then(() => updateRecordingSessionList());
                         }}
                       >
                         Delete
-                      </button>
+                      </Button>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <button
-            disabled={!!experiment.closedAt}
-            onClick={() =>
-              createNewRecordingSession(session, experiment.id).then(() => {
-                updateRecordingSessionList();
-              })
-            }
-          >
-            Start a new session
-          </button>
-        </main>
-      </div>
+                </Link>
+              ))}
+            </tbody>
+          </Table>
+        )}
+      </main>
     </Layout>
   );
 };

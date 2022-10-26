@@ -1,4 +1,3 @@
-import {Prisma} from '@prisma/client';
 import prisma from 'lib/prisma';
 import {NextApiRequest, NextApiResponse} from 'next';
 import {RecordingSession} from 'types';
@@ -22,16 +21,24 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     },
   });
 
-  const deleteRuns = prisma.mouse.deleteMany({
-    where: {
-      id: {in: nestedRuns.map((run) => run.id)},
-    },
-  });
-  const deleteRecordingSession = prisma.experiment.delete({
+  console.log('nestedRuns', nestedRuns);
+
+  if (nestedRuns.length > 0) {
+    const deleteRuns = prisma.run.deleteMany({
+      where: {
+        id: {in: nestedRuns.map((run) => run.id)},
+      },
+    });
+    const deleteRecordingSession = prisma.recordingSession.delete({
+      where: {id},
+    });
+
+    const result = await prisma.$transaction([deleteRuns, deleteRecordingSession]);
+  }
+
+  const result = await prisma.recordingSession.delete({
     where: {id},
   });
-
-  const result = await prisma.$transaction([deleteRuns, deleteRecordingSession]);
 
   res.json(result);
 };
