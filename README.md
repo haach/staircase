@@ -33,10 +33,10 @@ Features that are still missing for this to be functional:
 
 - [ ] A proper ui with user feedback and decent forms
 - [ ] Making the app a PWA and therefore allow users to install it on a device in the lab for a quick access
-- [ ] Authentication using SSO
+- [x] Authentication using SSO
 - [ ] Fix authentication issues in production
-- [ ] Manage failing DB queries & roll back changes
-- [ ] CSV export
+- [x] Manage failing DB queries & roll back changes
+- [x] CSV export
 - [ ] Managing data on the DB as the amount of data increases
 - [ ] Application tests
 
