@@ -1,13 +1,13 @@
-import {Prisma} from '@prisma/client';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
-import {GetServerSideProps, GetStaticProps} from 'next';
+import {GetServerSideProps} from 'next';
 import {Session} from 'next-auth';
 import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useState} from 'react';
-import {Experiment, RecordingSession} from 'types';
+import {CSVDownload, CSVLink} from 'react-csv';
+import {Experiment} from 'types';
 import {serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
@@ -96,7 +96,7 @@ type Props = {
 
 const ExperimentDetail: React.FC<Props> = (props) => {
   const [experiment, setExperiment] = useState<Experiment>(props.experiment); // Initially use prerendered props
-  const [recordingSessionList, setRecordingSessionList] = useState(experiment.recordingSessions); // Initially use prerendered props
+  const [recordingSessionList, setRecordingSessionList] = useState(experiment?.recordingSessions); // Initially use prerendered props
   const router = useRouter();
   const {data: session} = useSession();
 
@@ -111,6 +111,11 @@ const ExperimentDetail: React.FC<Props> = (props) => {
         <h1>
           Experiment: {experiment.name} {experiment.displayId} {!!experiment.closedAt && '🔓 closed'}
         </h1>
+        <div>
+          <Link href={{pathname: `/experiment/${experiment.id}/export`}}>
+            <button>💾 Download experiment data</button>
+          </Link>
+        </div>
 
         <p>Created {new Date(experiment.createdAt).toLocaleString()}</p>
         {!experiment.closedAt && <p>Last Updated {new Date(experiment.updatedAt).toLocaleString()}</p>}

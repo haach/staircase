@@ -103,7 +103,6 @@ const RunDetail: React.FC<Props> = (props) => {
                   }))
                 )}
               </fieldset>
-              {console.log('router.query', router.query)}
               <Link href={`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`}>
                 <button type="button">Cancel</button>
               </Link>
