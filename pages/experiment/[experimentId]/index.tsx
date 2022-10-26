@@ -7,7 +7,7 @@ import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useState} from 'react';
-import {Button, Dropdown, Table} from 'react-bootstrap';
+import {Badge, Button, Dropdown, Table} from 'react-bootstrap';
 import {CSVDownload, CSVLink} from 'react-csv';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
@@ -120,18 +120,28 @@ const ExperimentDetail: React.FC<Props> = (props) => {
       <main css={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
         <div>
           <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-            <h1>
-              {experiment.name} ({experiment.displayId}) {!!experiment.closedAt && '🔓'}
-            </h1>
+            <div css={{display: 'flex', alignItems: 'center'}}>
+              <h1>
+                {experiment.name} ({experiment.displayId}){' '}
+              </h1>
+              {!!experiment.closedAt && (
+                <h5>
+                  <Badge bg="success" title={`Closed at ${experiment.closedAt.toLocaleString()}`}>
+                    closed
+                  </Badge>
+                </h5>
+              )}
+            </div>
             <Dropdown>
               <Dropdown.Toggle variant="secondary" size="sm" id="dropdown-basic">
                 MORE
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
-                  <Dropdown.Item disabled={!!experiment.closedAt}>✏️ Edit setup</Dropdown.Item>
-                </Link>
+                <Dropdown.Item disabled={!!experiment.closedAt} href={`/experiment/${experiment.id}/update`}>
+                  ✏️ Edit setup
+                </Dropdown.Item>
+
                 <Dropdown.Item
                   onClick={() => {
                     openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then(
@@ -143,9 +153,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                 >
                   ✔ {!!experiment.closedAt ? 'Reopen' : 'Conclude'}
                 </Dropdown.Item>
-                <Link href={{pathname: `/experiment/${experiment.id}/export`}}>
-                  <Dropdown.Item>📥 Export</Dropdown.Item>
-                </Link>
+                <Dropdown.Item href={`/experiment/${experiment.id}/export`}>📥 Export</Dropdown.Item>
                 <Dropdown.Divider />
                 <Dropdown.Item
                   disabled={!!experiment.closedAt}
