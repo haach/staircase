@@ -141,7 +141,10 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                   <tbody>
                     {group.mice.map((mouse) => {
                       const tableRow = (
-                        <tr css={mouse.run && {'&>*>span': {color: 'green'}}} key={mouse.id}>
+                        <tr
+                          css={mouse.run ? {'&>*>span': {color: 'green'}, cursor: 'pointer'} : {cursor: 'pointer'}}
+                          key={mouse.id}
+                        >
                           <td>{mouse.run ? '✅' : '⬜️'}</td>
                           <td>
                             <span>{mouse.mouseNumber}</span>

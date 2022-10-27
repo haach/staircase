@@ -11,7 +11,9 @@ const Layout: React.FC<Props> = (props) => (
   <div>
     <Header />
 
-    <Container css={{padding: '20px calc(var(--bs-gutter-x) * .5)'}}>{props.children}</Container>
+    <Container css={{padding: '20px calc(var(--bs-gutter-x) * .5)'}}>
+      <main css={{display: 'flex', flexDirection: 'column', gap: '16px'}}>{props.children}</main>
+    </Container>
     <style jsx global>{`
       html {
         box-sizing: border-box;

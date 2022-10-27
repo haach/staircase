@@ -117,125 +117,123 @@ const ExperimentDetail: React.FC<Props> = (props) => {
 
   return (
     <Layout>
-      <main css={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
-        <div>
-          <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-            <div css={{display: 'flex', alignItems: 'center'}}>
-              <h1>
-                {experiment.name} ({experiment.displayId}){' '}
-              </h1>
-              {!!experiment.closedAt && (
-                <h5>
-                  <Badge bg="success" title={`Closed at ${experiment.closedAt.toLocaleString()}`}>
-                    closed
-                  </Badge>
-                </h5>
-              )}
-            </div>
-            <Dropdown>
-              <Dropdown.Toggle variant="secondary" size="sm" id="dropdown-basic">
-                MORE
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu>
-                <Dropdown.Item disabled={!!experiment.closedAt} href={`/experiment/${experiment.id}/update`}>
-                  ✏️ Edit setup
-                </Dropdown.Item>
-
-                <Dropdown.Item
-                  onClick={() => {
-                    openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then(
-                      (res) => {
-                        setExperiment({...experiment, ...res});
-                      }
-                    );
-                  }}
-                >
-                  ✔ {!!experiment.closedAt ? 'Reopen' : 'Conclude'}
-                </Dropdown.Item>
-                <Dropdown.Item href={`/experiment/${experiment.id}/export`}>📥 Export</Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item
-                  disabled={!!experiment.closedAt}
-                  onClick={() => {
-                    deleteExperiment(experiment.id).then(() => router.push('/experiments'));
-                  }}
-                  css={{color: 'darkred'}}
-                >
-                  🗑 Delete
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </div>
-
-          <div css={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-            <span>Created: {new Date(experiment.createdAt).toLocaleString()}</span>
-            {!experiment.closedAt && <span>Last updated:{new Date(experiment.updatedAt).toLocaleString()}</span>}
-            {!!experiment.closedAt && <span>Closed at {new Date(experiment.closedAt).toLocaleString()}</span>}
-          </div>
-        </div>
-
+      <div>
         <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
-          <h2>Sessions </h2>
-          <Button
-            disabled={!!experiment.closedAt}
-            onClick={() =>
-              createNewRecordingSession(session, experiment.id).then(() => {
-                updateRecordingSessionList();
-              })
-            }
-          >
-            + Add Session
-          </Button>
+          <div css={{display: 'flex', alignItems: 'center'}}>
+            <h1>
+              {experiment.name} ({experiment.displayId}){' '}
+            </h1>
+            {!!experiment.closedAt && (
+              <h5>
+                <Badge bg="success" title={`Closed at ${experiment.closedAt.toLocaleString()}`}>
+                  closed
+                </Badge>
+              </h5>
+            )}
+          </div>
+          <Dropdown>
+            <Dropdown.Toggle variant="secondary" size="sm" id="dropdown-basic">
+              MORE
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item disabled={!!experiment.closedAt} href={`/experiment/${experiment.id}/update`}>
+                ✏️ Edit setup
+              </Dropdown.Item>
+
+              <Dropdown.Item
+                onClick={() => {
+                  openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then(
+                    (res) => {
+                      setExperiment({...experiment, ...res});
+                    }
+                  );
+                }}
+              >
+                ✔ {!!experiment.closedAt ? 'Reopen' : 'Conclude'}
+              </Dropdown.Item>
+              <Dropdown.Item href={`/experiment/${experiment.id}/export`}>📥 Export</Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item
+                disabled={!!experiment.closedAt}
+                onClick={() => {
+                  deleteExperiment(experiment.id).then(() => router.push('/experiments'));
+                }}
+                css={{color: 'darkred'}}
+              >
+                🗑 Delete
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
 
-        {recordingSessionList.length < 1 && <p>🤷‍♀️ There are no sessions in this experiment.</p>}
+        <div css={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+          <span>Created: {new Date(experiment.createdAt).toLocaleString()}</span>
+          {!experiment.closedAt && <span>Last updated:{new Date(experiment.updatedAt).toLocaleString()}</span>}
+          {!!experiment.closedAt && <span>Closed at {new Date(experiment.closedAt).toLocaleString()}</span>}
+        </div>
+      </div>
 
-        {recordingSessionList.length > 0 && (
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Author</th>
-                <th>Created at</th>
-                <th>Last updated</th>
-                <th>Runs</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {recordingSessionList.map((recordingSession, idx) => (
-                <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}} key={recordingSession.id}>
-                  <tr css={{cursor: 'pointer'}}>
-                    <td>{idx + 1}</td>
-                    <td>
-                      {recordingSession.author.name} ({recordingSession.author.email})
-                    </td>
+      <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <h2>Sessions </h2>
+        <Button
+          disabled={!!experiment.closedAt}
+          onClick={() =>
+            createNewRecordingSession(session, experiment.id).then(() => {
+              updateRecordingSessionList();
+            })
+          }
+        >
+          + Add Session
+        </Button>
+      </div>
 
-                    <td>{new Date(recordingSession.createdAt).toLocaleString()}</td>
-                    <td>{new Date(recordingSession.updatedAt).toLocaleString()}</td>
-                    <td>{recordingSession.runs?.length ?? 0}</td>
+      {recordingSessionList.length < 1 && <p>🤷‍♀️ There are no sessions in this experiment.</p>}
 
-                    <td>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        disabled={!!experiment.closedAt}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteRecordingSession(recordingSession.id).then(() => updateRecordingSessionList());
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                </Link>
-              ))}
-            </tbody>
-          </Table>
-        )}
-      </main>
+      {recordingSessionList.length > 0 && (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Author</th>
+              <th>Created at</th>
+              <th>Last updated</th>
+              <th>Runs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {recordingSessionList.map((recordingSession, idx) => (
+              <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}} key={recordingSession.id}>
+                <tr css={{cursor: 'pointer'}}>
+                  <td>{idx + 1}</td>
+                  <td>
+                    {recordingSession.author.name} ({recordingSession.author.email})
+                  </td>
+
+                  <td>{new Date(recordingSession.createdAt).toLocaleString()}</td>
+                  <td>{new Date(recordingSession.updatedAt).toLocaleString()}</td>
+                  <td>{recordingSession.runs?.length ?? 0}</td>
+
+                  <td>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      disabled={!!experiment.closedAt}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteRecordingSession(recordingSession.id).then(() => updateRecordingSessionList());
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              </Link>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </Layout>
   );
 };
