@@ -11,6 +11,8 @@ import {Badge, Button, Dropdown, Table} from 'react-bootstrap';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
 import {GoPlus} from 'react-icons/go';
+import {FiMoreVertical} from 'react-icons/fi';
+import {css} from '@emotion/react';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
@@ -132,8 +134,24 @@ const ExperimentDetail: React.FC<Props> = (props) => {
             )}
           </div>
           <Dropdown>
-            <Dropdown.Toggle variant="secondary" size="sm" id="dropdown-basic">
-              MORE
+            <Dropdown.Toggle
+              size="sm"
+              css={css`
+                border: 1px solid #333;
+                background-color: transparent;
+                color: #333;
+                &:hover,
+                &:active {
+                  border-color: #333 !important;
+                  background-color: #eee !important;
+                  color: #333 !important;
+                }
+                &::after {
+                  display: none;
+                }
+              `}
+            >
+              <FiMoreVertical />
             </Dropdown.Toggle>
 
             <Dropdown.Menu>

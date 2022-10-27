@@ -45,6 +45,8 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
       name: '',
     }
   );
+  const [miceToDeleteAfterSave, setMiceToDeleteAfterSave] = useState<Array<string>>([]);
+  const [groupsToDeleteAfterSave, setGroupsToDeleteAfterSave] = useState<Array<string>>([]);
 
   const addEmptyGroup = (groupNumber) => {
     const newState = {...formState};
@@ -159,7 +161,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                       setFormState(newState);
                       if (mouse.id) {
                         // Delete mouse from database
-                        deleteMouse(mouse.id);
+                        setMiceToDeleteAfterSave([...miceToDeleteAfterSave, mouse.id]);
                       }
                     }}
                     css={css`
@@ -270,6 +272,12 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        miceToDeleteAfterSave.forEach((mouseId) => {
+          deleteMouse(mouseId);
+        });
+        groupsToDeleteAfterSave.forEach((groupId) => {
+          deleteGroup(groupId);
+        });
         props.handleSubmit(formState);
       }}
       css={css`
@@ -342,6 +350,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
 
                   <Dropdown>
                     <Dropdown.Toggle
+                      size="sm"
                       css={css`
                         border: 1px solid #333;
                         background-color: transparent;
@@ -368,7 +377,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                           setFormState(newState);
                           if (group.id) {
                             // Delete group from database
-                            deleteGroup(group.id);
+                            setGroupsToDeleteAfterSave([...groupsToDeleteAfterSave, group.id]);
                           }
                         }}
                         css={css`
