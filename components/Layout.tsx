@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import {css} from '@emotion/react';
 import React, {ReactNode} from 'react';
 import {Container} from 'react-bootstrap';
 import Header from './Header';
@@ -11,8 +12,20 @@ const Layout: React.FC<Props> = (props) => (
   <div>
     <Header />
 
-    <Container css={{padding: '20px calc(var(--bs-gutter-x) * .5)'}}>
-      <main css={{display: 'flex', flexDirection: 'column', gap: '16px'}}>{props.children}</main>
+    <Container
+      css={css`
+        padding: 20px calc(var(--bs-gutter-x) * 0.5);
+      `}
+    >
+      <main
+        css={css`
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        `}
+      >
+        {props.children}
+      </main>
     </Container>
     <style jsx global>{`
       html {

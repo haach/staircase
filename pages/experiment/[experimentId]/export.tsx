@@ -134,45 +134,43 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
 
   return (
     <Layout>
-      <main css={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
-        <h1>Export data for experiment: {experiment.name}</h1>
-        {!experiment.closedAt && (
-          <p>⚠️ Experiment is not concluded yet. There might be more data added after your export.</p>
-        )}
-        <h2>Experiment Setup</h2>
-        <table>
-          <tbody>
-            <tr>
-              <td>Groups:</td>
-              <td>{experiment.groups.length}</td>
+      <h1>Export data for experiment: {experiment.name}</h1>
+      {!experiment.closedAt && (
+        <p>⚠️ Experiment is not concluded yet. There might be more data added after your export.</p>
+      )}
+      <h2>Experiment Setup</h2>
+      <table>
+        <tbody>
+          <tr>
+            <td>Groups:</td>
+            <td>{experiment.groups.length}</td>
+          </tr>
+          <tr>
+            <td>Mice:</td>
+            <td>{experiment.groups.flatMap((group) => group.mice).length}</td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>Recording sessions</h2>
+      <table>
+        <tbody>
+          {experiment.recordingSessions.map((recordingSession, idx) => (
+            <tr key={recordingSession.id}>
+              <td>{idx + 1}</td>
+              <td>
+                {recordingSession.author.name} ({recordingSession.author.email})
+              </td>
+              <td>{new Date(recordingSession.createdAt).toLocaleDateString()}</td>
+              <td>{recordingSession.runs.length} runs</td>
             </tr>
-            <tr>
-              <td>Mice:</td>
-              <td>{experiment.groups.flatMap((group) => group.mice).length}</td>
-            </tr>
-          </tbody>
-        </table>
-        <h2>Recording sessions</h2>
-        <table>
-          <tbody>
-            {experiment.recordingSessions.map((recordingSession, idx) => (
-              <tr key={recordingSession.id}>
-                <td>{idx + 1}</td>
-                <td>
-                  {recordingSession.author.name} ({recordingSession.author.email})
-                </td>
-                <td>{new Date(recordingSession.createdAt).toLocaleDateString()}</td>
-                <td>{recordingSession.runs.length} runs</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </table>
 
-        <Button>
-          {!csvData && <p>Loading...</p>}
-          {exportButton}
-        </Button>
-      </main>
+      <Button>
+        {!csvData && <p>Loading...</p>}
+        {exportButton}
+      </Button>
     </Layout>
   );
 };
