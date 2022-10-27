@@ -4,7 +4,7 @@ import exp from 'constants';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import React, {FC, useEffect, useState} from 'react';
-import {Button} from 'react-bootstrap';
+import {Alert, Button} from 'react-bootstrap';
 import {CSVLink} from 'react-csv';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
@@ -137,7 +137,9 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
       <>
         <h1>Export data for experiment: {experiment.name}</h1>
         {!experiment.closedAt && (
-          <p>⚠️ Experiment is not concluded yet. There might be more data added after your export.</p>
+          <Alert variant="warning">
+            ⚠️ Experiment is not concluded yet. There might be more data added after your export.
+          </Alert>
         )}
         <h2>Experiment Setup</h2>
         <table>
@@ -167,7 +169,6 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
             ))}
           </tbody>
         </table>
-        {console.log('csvData', csvData)}
         {!csvData && (
           <div>
             <Button>Loading...</Button>

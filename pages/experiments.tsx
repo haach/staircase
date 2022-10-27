@@ -89,7 +89,7 @@ const ExperimentOverview: React.FC<Props> = (props) => {
           </Table>
         )}
         <Link href="/experiment/create">
-          <Button>Create experiment</Button>
+          <Button size="sm">Create experiment</Button>
         </Link>
       </main>
     </Layout>

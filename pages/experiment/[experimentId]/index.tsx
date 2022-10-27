@@ -8,9 +8,9 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useState} from 'react';
 import {Badge, Button, Dropdown, Table} from 'react-bootstrap';
-import {CSVDownload, CSVLink} from 'react-csv';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
+import {GoPlus} from 'react-icons/go';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
@@ -178,13 +178,14 @@ const ExperimentDetail: React.FC<Props> = (props) => {
         <h2>Sessions </h2>
         <Button
           disabled={!!experiment.closedAt}
+          size="sm"
           onClick={() =>
             createNewRecordingSession(session, experiment.id).then(() => {
               updateRecordingSessionList();
             })
           }
         >
-          + Add Session
+          <GoPlus /> Add Session
         </Button>
       </div>
 

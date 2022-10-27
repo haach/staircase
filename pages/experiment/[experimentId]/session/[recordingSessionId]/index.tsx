@@ -1,4 +1,5 @@
 /** @jsxImportSource @emotion/react */
+import {css} from '@emotion/react';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
@@ -141,10 +142,7 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                   <tbody>
                     {group.mice.map((mouse) => {
                       const tableRow = (
-                        <tr
-                          css={mouse.run ? {'&>*>span': {color: 'green'}, cursor: 'pointer'} : {cursor: 'pointer'}}
-                          key={mouse.id}
-                        >
+                        <>
                           <td>{mouse.run ? '✅' : '⬜️'}</td>
                           <td>
                             <span>{mouse.mouseNumber}</span>
@@ -163,21 +161,22 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                               variant="secondary"
                               size="sm"
                               disabled={!!props.recordingSession.Experiment.closedAt}
-                              onClick={() =>
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 updateMouse({...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()}).then(() => {
                                   console.log('Need to update recordingSession');
-                                })
-                              }
+                                });
+                              }}
                             >
                               {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
                             </Button>
                           </td>
                           <td>
-                            {mouse.run ? (
+                            {mouse.run && (
                               <Button
                                 variant="danger"
                                 size="sm"
-                                disabled={!!props.recordingSession.Experiment.closedAt}
+                                disabled={!!props.recordingSession.Experiment.closedAt || !!mouse.deceasedAt}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   deleteRun(mouse.run.id).then(() => updateRunList());
@@ -185,28 +184,48 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                               >
                                 Delete
                               </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  createNewRun(props.recordingSession.id, mouse.id).then((res) => {
-                                    router.push(`${router.asPath}/run/${res.id}`);
-                                  })
-                                }
-                                disabled={!!props.recordingSession.Experiment.closedAt}
-                              >
-                                Record a run
-                              </Button>
                             )}
                           </td>
-                        </tr>
+                        </>
                       );
                       return mouse.run ? (
                         <Link key={mouse.id} href={`${router.asPath}/run/${mouse.run.id}`}>
-                          {tableRow}
+                          <tr
+                            css={css`
+                              cursor: pointer;
+                            `}
+                            key={mouse.id}
+                          >
+                            {tableRow}
+                          </tr>
                         </Link>
                       ) : (
-                        tableRow
+                        <tr
+                          css={[
+                            css`
+                              cursor: pointer;
+                            `,
+                            !!mouse.deceasedAt &&
+                              css`
+                                opacity: 0.8;
+                                cursor: not-allowed;
+                                &:hover {
+                                  td {
+                                    --bs-table-accent-bg: transparent !important;
+                                  }
+                                }
+                              `,
+                          ]}
+                          key={mouse.id}
+                          onClick={() =>
+                            !mouse.deceasedAt &&
+                            createNewRun(props.recordingSession.id, mouse.id).then((res) => {
+                              router.push(`${router.asPath}/run/${res.id}`);
+                            })
+                          }
+                        >
+                          {tableRow}
+                        </tr>
                       );
                     })}
                   </tbody>
@@ -236,14 +255,6 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
           )}
         </main>
       </div>
-      <style jsx>{`
-        .grey {
-          color: grey;
-        }
-        .green {
-          color: green;
-        }
-      `}</style>
     </Layout>
   );
 };

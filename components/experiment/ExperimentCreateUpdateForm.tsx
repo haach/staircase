@@ -6,6 +6,7 @@ import React, {ChangeEvent, useState} from 'react';
 import {Button, Card, Dropdown} from 'react-bootstrap';
 import {Experiment, Group, Mouse} from 'types';
 import {FiMoreVertical} from 'react-icons/fi';
+import {GoPlus} from 'react-icons/go';
 
 const deleteMouse = async (id: string) => {
   const res = await fetch('/api/mouse/delete', {
@@ -335,7 +336,9 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                     gap: 8px;
                   `}
                 >
-                  <Button onClick={() => addEmptyMouseFormField(group.groupNumber)}>+ Add subject</Button>
+                  <Button onClick={() => addEmptyMouseFormField(group.groupNumber)} size="sm">
+                    <GoPlus /> Add subject
+                  </Button>
 
                   <Dropdown>
                     <Dropdown.Toggle
@@ -404,6 +407,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
       {(!formState.groups || formState.groups?.length < 1) && <p>There are no groups in this experiment</p>}
       <div>
         <Button
+          size="sm"
           type="button"
           onClick={() => {
             addEmptyGroup(formState.groups ? formState.groups.length + 1 : 1);
