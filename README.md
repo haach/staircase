@@ -27,18 +27,23 @@ Experiments frequently have around 30 subjects that will be recorded on 15 days 
 
 The goal of this tool is to speed up the data recording process and offer an easy CSV export for every experiment. The scientist can
 
+## Preview
+
+https://user-images.githubusercontent.com/34210193/198361915-59ad6d26-40b5-4127-ab69-6b13be002feb.mov
+
 ## Outlook
 
 Features that are still missing for this to be functional:
 
-- [ ] A proper ui with user feedback and decent forms
-- [ ] Making the app a PWA and therefore allow users to install it on a device in the lab for a quick access
+- [x] A proper ui with user feedback and decent forms
 - [x] Authentication using SSO
 - [ ] Fix authentication issues in production
 - [x] Manage failing DB queries & roll back changes
 - [x] CSV export
-- [ ] Managing data on the DB as the amount of data increases
 - [ ] Application tests
+
+Nice to haves:
+- [ ] Making the app a PWA and therefore allow users to install it on a device in the lab for a quick access
 
 ## Project setup
 
