@@ -3,8 +3,31 @@ import {css} from '@emotion/react';
 import {InputGenerator} from 'components/InputGenerator';
 import Link from 'next/link';
 import React, {ChangeEvent, useState} from 'react';
-import {Button, Card} from 'react-bootstrap';
+import {Button, Card, Dropdown} from 'react-bootstrap';
 import {Experiment, Group, Mouse} from 'types';
+import {FiMoreVertical} from 'react-icons/fi';
+
+const deleteMouse = async (id: string) => {
+  const res = await fetch('/api/mouse/delete', {
+    method: 'POST',
+    body: id,
+  });
+  if (!res.ok) {
+    throw new Error('Error deleting mouse');
+  }
+  return res.json();
+};
+
+const deleteGroup = async (id: string) => {
+  const res = await fetch('/api/group/delete', {
+    method: 'POST',
+    body: id,
+  });
+  if (!res.ok) {
+    throw new Error('Error deleting group');
+  }
+  return res.json();
+};
 
 type Props = {
   experiment?: Experiment;
@@ -82,16 +105,81 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
               flex-direction: column;
             `}
           >
-            <legend>Mouse {index + 1}</legend>
             <div
               css={css`
                 display: flex;
+              `}
+            >
+              <legend>Mouse {mouse.mouseNumber ?? index + 1}</legend>
+
+              <Dropdown>
+                <Dropdown.Toggle
+                  size="sm"
+                  css={css`
+                    border: 1px solid #333;
+                    background-color: transparent;
+                    color: #333;
+                    &:hover,
+                    &:active {
+                      border-color: #333 !important;
+                      background-color: #eee !important;
+                      color: #333 !important;
+                    }
+                    &::after {
+                      display: none;
+                    }
+                  `}
+                >
+                  <FiMoreVertical />
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  {mouse.id && (
+                    <>
+                      <Dropdown.Item
+                        onClick={() => {
+                          const newState = {...formState};
+                          newState.groups[groupIdx].mice[index] = {
+                            ...mouse,
+                            deceasedAt: mouse.deceasedAt ? null : new Date(),
+                          };
+                          setFormState(newState);
+                        }}
+                      >
+                        {mouse.deceasedAt ? '🐭 Mark as alive' : '💀 Mark as deceased'}
+                      </Dropdown.Item>
+                      <Dropdown.Divider />
+                    </>
+                  )}
+                  <Dropdown.Item
+                    onClick={() => {
+                      const newState = {...formState};
+                      newState.groups[groupIdx].mice.pop();
+                      setFormState(newState);
+                      if (mouse.id) {
+                        // Delete mouse from database
+                        deleteMouse(mouse.id);
+                      }
+                    }}
+                    css={css`
+                      color: darkred;
+                    `}
+                  >
+                    🗑 Delete
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+            <div
+              css={css`
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
               `}
             >
               {InputGenerator([
                 {
-                  label: 'Pyrat ID *',
+                  label: 'Pyrat ID*',
                   name: `${groupNumber.id}-mouse-${index}-pyratId`,
                   id: `${groupNumber.id}-mouse-${index}-pyratId`,
                   type: 'text',
@@ -104,7 +192,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                   },
                 },
                 {
-                  label: 'Mouse Nr *',
+                  label: 'Mouse Nr*',
                   name: `${groupNumber.id}-mouse-${index}-mouseNumber`,
                   id: `${groupNumber.id}-mouse-${index}-mouseNumber`,
                   type: 'number',
@@ -117,7 +205,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                   },
                 },
                 {
-                  label: 'Chip Nr *',
+                  label: 'Chip Nr*',
                   name: `${groupNumber.id}-mouse-${index}-chipNumber`,
                   id: `${groupNumber.id}-mouse-${index}-chipNumber`,
                   type: 'number',
@@ -132,46 +220,45 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
               ])}
             </div>
 
-            <label htmlFor={`${groupNumber.id}-mouse-${index}-gender`}>Gender *</label>
-            <select
-              name={`${groupNumber.id}-mouse-${index}-gender`}
-              id={`${groupNumber.id}-mouse-${index}-gender`}
-              defaultValue={mouse.gender ?? ''}
-              required
-              onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-                const newState = {...formState};
-                newState.groups[groupIdx].mice[index].gender = e.target.value as 'MALE' | 'FEMALE';
-                setFormState(newState);
-              }}
+            <div
+              css={css`
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 8px;
+              `}
             >
-              <option value="">Select</option> <option value="FEMALE">Female</option> <option value="MALE">Male</option>
-            </select>
-            {InputGenerator([
-              {
-                label: 'Geno Type',
-                name: `${groupNumber.id}-mouse-${index}-genoType`,
-                id: `${groupNumber.id}-mouse-${index}-genoType`,
-                type: 'text',
-                defaultValue: mouse.genoType,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].genoType = e.target.value;
-                  setFormState(newState);
+              <div>
+                <label htmlFor={`${groupNumber.id}-mouse-${index}-gender`}>Gender*</label>
+                <select
+                  name={`${groupNumber.id}-mouse-${index}-gender`}
+                  id={`${groupNumber.id}-mouse-${index}-gender`}
+                  defaultValue={mouse.gender ?? ''}
+                  required
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                    const newState = {...formState};
+                    newState.groups[groupIdx].mice[index].gender = e.target.value as 'MALE' | 'FEMALE';
+                    setFormState(newState);
+                  }}
+                >
+                  <option value="">Select</option> <option value="FEMALE">Female</option>{' '}
+                  <option value="MALE">Male</option>
+                </select>
+              </div>
+              {InputGenerator([
+                {
+                  label: 'Geno Type',
+                  name: `${groupNumber.id}-mouse-${index}-genoType`,
+                  id: `${groupNumber.id}-mouse-${index}-genoType`,
+                  type: 'text',
+                  defaultValue: mouse.genoType,
+                  onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                    const newState = {...formState};
+                    newState.groups[groupIdx].mice[index].genoType = e.target.value;
+                    setFormState(newState);
+                  },
                 },
-              },
-            ])}
-            {mouse.id && (
-              <button
-                type="button"
-                onClick={() => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index] = {...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()};
-                  setFormState(newState);
-                }}
-              >
-                {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
-              </button>
-            )}
+              ])}
+            </div>
           </fieldset>
         </Card.Body>
       </Card>
@@ -198,7 +285,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
       >
         {InputGenerator([
           {
-            label: 'Name',
+            label: 'Name*',
             name: 'name',
             id: 'name',
             type: 'text',
@@ -211,7 +298,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
             },
           },
           {
-            label: 'ID',
+            label: 'ID*',
             name: 'displayId',
             id: 'displayId',
             type: 'text',
@@ -242,13 +329,69 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                 <h3>
                   Group {group.groupNumber} - {group.mice?.length ?? 0} subjects
                 </h3>
-                <Button onClick={() => addEmptyMouseFormField(group.groupNumber)}>+ Add subject</Button>
+                <div
+                  css={css`
+                    display: flex;
+                    gap: 8px;
+                  `}
+                >
+                  <Button onClick={() => addEmptyMouseFormField(group.groupNumber)}>+ Add subject</Button>
+
+                  <Dropdown>
+                    <Dropdown.Toggle
+                      css={css`
+                        border: 1px solid #333;
+                        background-color: transparent;
+                        color: #333;
+                        &:hover,
+                        &:active {
+                          border-color: #333 !important;
+                          background-color: #eee !important;
+                          color: #333 !important;
+                        }
+                        &::after {
+                          display: none;
+                        }
+                      `}
+                    >
+                      <FiMoreVertical />
+                    </Dropdown.Toggle>
+
+                    <Dropdown.Menu>
+                      <Dropdown.Item
+                        onClick={() => {
+                          const newState = {...formState};
+                          newState.groups.splice(idx, 1);
+                          setFormState(newState);
+                          if (group.id) {
+                            // Delete group from database
+                            deleteGroup(group.id);
+                          }
+                        }}
+                        css={css`
+                          color: darkred;
+                        `}
+                      >
+                        🗑 Delete
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
               </div>
               <div
                 css={css`
                   display: grid;
-                  grid-template-columns: repeat(3, 1fr);
+                  grid-template-columns: repeat(1, 1fr);
                   gap: 16px;
+                  @media (min-width: 440px) {
+                    grid-template-columns: repeat(2, 1fr);
+                  }
+                  @media (min-width: 992px) {
+                    grid-template-columns: repeat(3, 1fr);
+                  }
+                  /* @media (min-width: 1200px) {
+                    grid-template-columns: repeat(4, 1fr);
+                  } */
                 `}
               >
                 {group.mice?.length > 0 && renderMiceFormFields(group.groupNumber)}
