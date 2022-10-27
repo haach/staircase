@@ -1,5 +1,8 @@
-import React, { ReactNode } from "react";
-import Header from "./Header";
+/** @jsxImportSource @emotion/react */
+import {css} from '@emotion/react';
+import React, {ReactNode} from 'react';
+import {Container} from 'react-bootstrap';
+import Header from './Header';
 
 type Props = {
   children: ReactNode;
@@ -8,7 +11,22 @@ type Props = {
 const Layout: React.FC<Props> = (props) => (
   <div>
     <Header />
-    <div className="layout">{props.children}</div>
+
+    <Container
+      css={css`
+        padding: 20px calc(var(--bs-gutter-x) * 0.5);
+      `}
+    >
+      <main
+        css={css`
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        `}
+      >
+        {props.children}
+      </main>
+    </Container>
     <style jsx global>{`
       html {
         box-sizing: border-box;
@@ -24,24 +42,9 @@ const Layout: React.FC<Props> = (props) => (
         margin: 0;
         padding: 0;
         font-size: 16px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-          "Segoe UI Symbol";
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif,
+          'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
         background: rgba(0, 0, 0, 0.05);
-      }
-
-      input,
-      textarea {
-        font-size: 16px;
-      }
-
-      button {
-        cursor: pointer;
-      }
-    `}</style>
-    <style jsx>{`
-      .layout {
-        padding: 0 2rem;
       }
     `}</style>
   </div>

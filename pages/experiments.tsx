@@ -1,7 +1,9 @@
+/** @jsxImportSource @emotion/react */
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
 import {prismaExperimentFindManyArgs} from 'pages/api/experiment/readMany';
 import React, {useState} from 'react';
+import {Badge, Button, Table} from 'react-bootstrap';
 import {Experiment} from 'types';
 import Layout from '../components/Layout';
 import prisma from '../lib/prisma';
@@ -26,14 +28,6 @@ const getFreshExperimentList = async () => {
   return res.json();
 };
 
-const deleteExperiment = async (experiment_id) => {
-  const res = await fetch('/api/experiment/delete', {method: 'POST', body: experiment_id});
-  if (!res.ok) {
-    throw new Error('Error deleting sesion ' + experiment_id);
-  }
-  return res.json();
-};
-
 type Props = {
   experimentList: Array<Experiment>;
 };
@@ -48,68 +42,56 @@ const ExperimentOverview: React.FC<Props> = (props) => {
 
   return (
     <Layout>
-      <div className="page">
-        <h1>Experiment overview</h1>
+      <h1>Experiment list</h1>
 
-        <main>
-          {experimentList.length < 1 && <div>There are no experiments recorded yet.</div>}
-          {experimentList.length > 0 && (
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>ID</th>
-                  <th>Start date</th>
-                  <th>Last updated</th>
-                  <th>Sessions</th>
-                  <th>Groups</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {experimentList.map((experiment) => (
-                  <tr key={experiment.id} className="post">
+      <main>
+        {experimentList.length < 1 && <div>There are no experiments recorded yet.</div>}
+        {experimentList.length > 0 && (
+          <Table striped bordered hover>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>ID</th>
+                {/* <th>Start date</th> */}
+                <th>Last updated</th>
+                <th>Sessions</th>
+                <th>Groups</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {experimentList.map((experiment) => (
+                <Link href={{pathname: `/experiment/${experiment.id}`}} key={experiment.id}>
+                  <tr css={{cursor: 'pointer'}}>
                     <td>{experiment.name}</td>
                     <td>{experiment.displayId}</td>
-                    <td>{new Date(experiment.createdAt).toLocaleString()}</td>
+                    {/* <td>
+                      {new Date(experiment.createdAt).toLocaleString()}
+                    </td> */}
                     <td>{new Date(experiment.updatedAt).toLocaleString()}</td>
                     <td>{experiment.recordingSessions?.length ?? 0}</td>
                     <td>{experiment.groups?.length ?? 0}</td>
                     <td>
                       {experiment.closedAt ? (
-                        <span title={`Closed at ${experiment.closedAt.toLocaleString()}`}>closed</span>
+                        <Badge bg="success" title={`Closed at ${experiment.closedAt.toLocaleString()}`}>
+                          closed
+                        </Badge>
                       ) : (
-                        <span>open</span>
-                      )}
-                    </td>
-                    <td>
-                      <Link href={{pathname: `/experiment/${experiment.id}`}}>
-                        <a>View</a>
-                      </Link>
-                      {/*  <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
-                            <a>Edit setup</a>
-                          </Link> */}
-                      {!experiment.closedAt && (
-                        <button
-                          onClick={() => {
-                            deleteExperiment(experiment.id).then(() => updateExperimentList());
-                          }}
-                        >
-                          Delete
-                        </button>
+                        <Badge bg="light" text="dark">
+                          open
+                        </Badge>
                       )}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <Link href="/experiment/create">
-            <a>Create experiment</a>
-          </Link>
-        </main>
-      </div>
+                </Link>
+              ))}
+            </tbody>
+          </Table>
+        )}
+        <Link href="/experiment/create">
+          <Button size="sm">Create experiment</Button>
+        </Link>
+      </main>
     </Layout>
   );
 };

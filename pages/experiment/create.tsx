@@ -1,4 +1,3 @@
-import {Prisma} from '@prisma/client';
 import ExperimentCreateUpdateForm from 'components/experiment/ExperimentCreateUpdateForm';
 import Layout from 'components/Layout';
 import {useRouter} from 'next/router';

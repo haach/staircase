@@ -1,13 +1,14 @@
-import {Prisma} from '@prisma/client';
+/** @jsxImportSource @emotion/react */
 import {InputGenerator} from 'components/InputGenerator';
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import React, {ChangeEvent, useEffect, useState} from 'react';
-import {Mouse, Run} from 'types';
-import {serialize} from 'utils';
+import React, {ChangeEvent, useState} from 'react';
+import {Button} from 'react-bootstrap';
+import {Run} from 'types';
+import {isTouchDevice, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const run = await prisma.run.findUnique({
@@ -44,6 +45,18 @@ const RunDetail: React.FC<Props> = (props) => {
   const [formState, setFormState] = useState<Partial<Run>>(props.run);
   const router = useRouter();
 
+  const focusNext = (side: string, idx: number) => {
+    if (side === 'right' && idx === 8) {
+      // Focus first of left
+      document.getElementById(`left-stair-0`).focus();
+    } else if (side === 'left' && idx === 8) {
+      // Focus submit?
+    } else {
+      // Focus next
+      document.getElementById(`${side}-stair-${idx + 1}`).focus();
+    }
+  };
+
   return (
     <Layout>
       <div className="page">
@@ -59,56 +72,70 @@ const RunDetail: React.FC<Props> = (props) => {
                 router.push(`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`)
               );
             }}
+            css={{display: 'flex', flexDirection: 'column', gap: '16px'}}
           >
             <>
               <fieldset>
                 <legend>Right paw:</legend>
-                {InputGenerator(
-                  formState.right.map((pellets, idx) => ({
-                    label: `Stair ${idx}`,
-                    name: `right-stair-${idx}`,
-                    id: `right-stair-${idx}`,
-                    type: 'number',
-                    min: 0,
-                    max: 8,
-                    defaultValue: pellets,
-                    required: true,
-                    readOnly: !!props.run.RecordingSession.Experiment.closedAt,
-                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                      const newState = {...formState};
-                      newState.right[idx] = Number(e.target.value);
-                      setFormState(newState);
-                    },
-                  }))
-                )}
+                <div css={{display: 'flex', flexWrap: 'wrap', alignContent: 'start', gap: '8px'}}>
+                  {InputGenerator(
+                    formState.right.map((pellets, idx) => ({
+                      label: idx === 8 ? 'Floor' : `Stair ${idx + 1}`,
+                      name: `right-stair-${idx}`,
+                      id: `right-stair-${idx}`,
+                      type: 'number',
+                      min: 0,
+                      max: 8,
+                      defaultValue: pellets,
+                      required: true,
+                      readOnly: !!props.run.RecordingSession.Experiment.closedAt,
+                      onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                        const newState = {...formState};
+                        newState.right[idx] = Number(e.target.value);
+                        setFormState(newState);
+                        // Jump to next field on touch devices
+                        isTouchDevice() && e.target.value?.length > 0 && focusNext('right', idx);
+                      },
+                    }))
+                  )}
+                </div>
               </fieldset>
               <fieldset>
                 <legend>Left paw:</legend>
-                {InputGenerator(
-                  formState.left.map((pellets, idx) => ({
-                    label: `Stair ${idx}`,
-                    name: `left-stair-${idx}`,
-                    id: `left-stair-${idx}`,
-                    type: 'number',
-                    min: 0,
-                    max: 8,
-                    defaultValue: pellets,
-                    required: true,
-                    readOnly: !!props.run.RecordingSession.Experiment.closedAt,
-                    onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                      const newState = {...formState};
-                      newState.left[idx] = Number(e.target.value);
-                      setFormState(newState);
-                    },
-                  }))
-                )}
+                <div css={{display: 'flex', flexWrap: 'wrap', alignContent: 'start', gap: '8px'}}>
+                  {InputGenerator(
+                    formState.left.map((pellets, idx) => ({
+                      label: idx === 8 ? 'Floor' : `Stair ${idx + 1}`,
+                      name: `left-stair-${idx}`,
+                      id: `left-stair-${idx}`,
+                      type: 'number',
+                      min: 0,
+                      max: 8,
+                      defaultValue: pellets,
+                      required: true,
+                      readOnly: !!props.run.RecordingSession.Experiment.closedAt,
+                      onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                        const newState = {...formState};
+                        newState.left[idx] = Number(e.target.value);
+                        setFormState(newState);
+                        // Jump to next field on touch devices
+                        isTouchDevice() && e.target.value?.length > 0 && focusNext('left', idx);
+                      },
+                    }))
+                  )}
+                </div>
               </fieldset>
-              <Link href={`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`}>
-                <button type="button">Cancel</button>
-              </Link>
-              <button type="submit" disabled={!!props.run.RecordingSession.Experiment.closedAt}>
-                Done
-              </button>
+
+              <div css={{display: 'flex', alignContent: 'center', justifyContent: 'end', gap: '8px'}}>
+                <Link href={`/experiment/${router.query.experimentId}/session/${router.query.recordingSessionId}`}>
+                  <Button variant="danger" size="sm" type="button">
+                    Cancel
+                  </Button>
+                </Link>
+                <Button type="submit" size="sm" disabled={!!props.run.RecordingSession.Experiment.closedAt}>
+                  Done
+                </Button>
+              </div>
             </>
           </form>
         </main>

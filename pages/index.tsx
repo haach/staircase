@@ -1,43 +1,29 @@
-import {signOut, useSession} from 'next-auth/react';
+import {useSession} from 'next-auth/react';
 import Link from 'next/link';
-import {useRouter} from 'next/router';
 import React from 'react';
+import {Button} from 'react-bootstrap';
 import Layout from '../components/Layout';
-import Image from 'next/image';
 
 const Index: React.FC = () => {
-  const {data: session, status} = useSession();
-  console.log('session', session);
-  console.log('status', status);
-  const router = useRouter();
-  const isActive: (pathname: string) => boolean = (pathname) => router.pathname === pathname;
+  const {data: session} = useSession();
   return (
     <Layout>
-      <div className="page">
-        <Image src="/favicon.svg" alt="Staircase recorder logo" width={200} height={200} />
-        <h1>Staircase experiment recorder</h1>
-        <nav>
-          {status === 'loading' && <div>Loading login status...</div>}
-          {!session && (
-            <Link href="/api/auth/signin">
-              <a data-active={isActive('/signup')}>Log in</a>
-            </Link>
-          )}
-          {session && (
-            <>
-              <p>
-                {session.user.name} ({session.user.email})
-              </p>
-              <button onClick={() => signOut()}>
-                <a>Log out</a>
-              </button>
-              <Link href={{pathname: '/experiments'}}>
-                <a data-active={isActive('/experiments')}>Go to experiment list</a>
-              </Link>
-            </>
-          )}
-        </nav>
-      </div>
+      {session?.user ? (
+        <>
+          <h1>Hey {session?.user.name}! 👋</h1>
+          <p>
+            Sorry there is not much to see here yet. In the future there could be a dashboard here or a log of the last
+            edits.
+          </p>
+          <Link href="/experiments">
+            <Button variant="primary">Go to experiment list</Button>
+          </Link>
+        </>
+      ) : (
+        <>
+          <h1>Please log in</h1>
+        </>
+      )}
     </Layout>
   );
 };

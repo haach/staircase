@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
@@ -6,9 +7,12 @@ import {useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useState} from 'react';
-import {CSVDownload, CSVLink} from 'react-csv';
+import {Badge, Button, Dropdown, Table} from 'react-bootstrap';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
+import {GoPlus} from 'react-icons/go';
+import {FiMoreVertical} from 'react-icons/fi';
+import {css} from '@emotion/react';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
@@ -90,6 +94,14 @@ const openCloseExperiment = async (experiment: Experiment) => {
   return res.json();
 };
 
+const deleteExperiment = async (experiment_id) => {
+  const res = await fetch('/api/experiment/delete', {method: 'POST', body: experiment_id});
+  if (!res.ok) {
+    throw new Error('Error deleting sesion ' + experiment_id);
+  }
+  return res.json();
+};
+
 type Props = {
   experiment: Experiment;
 };
@@ -107,93 +119,140 @@ const ExperimentDetail: React.FC<Props> = (props) => {
 
   return (
     <Layout>
-      <div className="page">
-        <h1>
-          Experiment: {experiment.name} {experiment.displayId} {!!experiment.closedAt && '🔓 closed'}
-        </h1>
-        <div>
-          <Link href={{pathname: `/experiment/${experiment.id}/export`}}>
-            <button>💾 Download experiment data</button>
-          </Link>
+      <div>
+        <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+          <div css={{display: 'flex', alignItems: 'center'}}>
+            <h1>
+              {experiment.name} ({experiment.displayId}){' '}
+            </h1>
+            {!!experiment.closedAt && (
+              <h5>
+                <Badge bg="success" title={`Closed at ${experiment.closedAt.toLocaleString()}`}>
+                  closed
+                </Badge>
+              </h5>
+            )}
+          </div>
+          <Dropdown>
+            <Dropdown.Toggle
+              size="sm"
+              css={css`
+                border: 1px solid #333;
+                background-color: transparent;
+                color: #333;
+                &:hover,
+                &:active {
+                  border-color: #333 !important;
+                  background-color: #eee !important;
+                  color: #333 !important;
+                }
+                &::after {
+                  display: none;
+                }
+              `}
+            >
+              <FiMoreVertical />
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              <Dropdown.Item disabled={!!experiment.closedAt} href={`/experiment/${experiment.id}/update`}>
+                ✏️ Edit setup
+              </Dropdown.Item>
+
+              <Dropdown.Item
+                onClick={() => {
+                  openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then(
+                    (res) => {
+                      setExperiment({...experiment, ...res});
+                    }
+                  );
+                }}
+              >
+                ✔ {!!experiment.closedAt ? 'Reopen' : 'Conclude'}
+              </Dropdown.Item>
+              <Dropdown.Item href={`/experiment/${experiment.id}/export`}>📥 Export</Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item
+                disabled={!!experiment.closedAt}
+                onClick={() => {
+                  deleteExperiment(experiment.id).then(() => router.push('/experiments'));
+                }}
+                css={{color: 'darkred'}}
+              >
+                🗑 Delete
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
 
-        <p>Created {new Date(experiment.createdAt).toLocaleString()}</p>
-        {!experiment.closedAt && <p>Last Updated {new Date(experiment.updatedAt).toLocaleString()}</p>}
-        {!!experiment.closedAt && <p>Closed at {new Date(experiment.closedAt).toLocaleString()}</p>}
-        <p>{experiment.groups?.length ?? 0} groups</p>
-
-        <Link href={{pathname: `/experiment/${experiment.id}/update`}}>
-          <button disabled={!!experiment.closedAt}>Edit setup</button>
-        </Link>
-
-        <button
-          onClick={() => {
-            openCloseExperiment({...experiment, closedAt: experiment.closedAt ? null : new Date()}).then((res) => {
-              setExperiment({...experiment, ...res});
-            });
-          }}
-        >
-          {!!experiment.closedAt ? 'Reopen experiment' : 'Close experiment'}
-        </button>
-
-        <main>
-          <h2>Sessions </h2>
-          {recordingSessionList.length < 1 && <div>There are no sessions in this experiment.</div>}
-
-          {recordingSessionList.length > 0 && (
-            <table>
-              <thead>
-                <tr>
-                  <th>No.</th>
-                  <th>Author</th>
-                  <th>Created at</th>
-                  <th>Last updated</th>
-                  <th>Runs</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {recordingSessionList.map((recordingSession, idx) => (
-                  <tr key={recordingSession.id} className="post">
-                    <td>{idx + 1}</td>
-                    <td>
-                      {recordingSession.author.name} ({recordingSession.author.email})
-                    </td>
-
-                    <td>{new Date(recordingSession.createdAt).toLocaleString()}</td>
-                    <td>{new Date(recordingSession.updatedAt).toLocaleString()}</td>
-                    <td>{recordingSession.runs?.length ?? 0}</td>
-
-                    <td>
-                      <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}}>
-                        <a>View</a>
-                      </Link>
-                      <button
-                        disabled={!!experiment.closedAt}
-                        onClick={() => {
-                          deleteRecordingSession(recordingSession.id).then(() => updateRecordingSessionList());
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          <button
-            disabled={!!experiment.closedAt}
-            onClick={() =>
-              createNewRecordingSession(session, experiment.id).then(() => {
-                updateRecordingSessionList();
-              })
-            }
-          >
-            Start a new session
-          </button>
-        </main>
+        <div css={{display: 'flex', alignItems: 'center', gap: '16px'}}>
+          <span>Created: {new Date(experiment.createdAt).toLocaleString()}</span>
+          {!experiment.closedAt && <span>Last updated:{new Date(experiment.updatedAt).toLocaleString()}</span>}
+          {!!experiment.closedAt && <span>Closed at {new Date(experiment.closedAt).toLocaleString()}</span>}
+        </div>
       </div>
+
+      <div css={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <h2>Sessions </h2>
+        <Button
+          disabled={!!experiment.closedAt}
+          size="sm"
+          onClick={() =>
+            createNewRecordingSession(session, experiment.id).then(() => {
+              updateRecordingSessionList();
+            })
+          }
+        >
+          <GoPlus /> Add Session
+        </Button>
+      </div>
+
+      {recordingSessionList.length < 1 && <p>🤷‍♀️ There are no sessions in this experiment.</p>}
+
+      {recordingSessionList.length > 0 && (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Author</th>
+              <th>Created at</th>
+              <th>Last updated</th>
+              <th>Runs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {recordingSessionList.map((recordingSession, idx) => (
+              <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}} key={recordingSession.id}>
+                <tr css={{cursor: 'pointer'}}>
+                  <td>{idx + 1}</td>
+                  <td>
+                    {recordingSession.author.name} ({recordingSession.author.email})
+                  </td>
+
+                  <td>{new Date(recordingSession.createdAt).toLocaleString()}</td>
+                  <td>{new Date(recordingSession.updatedAt).toLocaleString()}</td>
+                  <td>{recordingSession.runs?.length ?? 0}</td>
+
+                  <td>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      disabled={!!experiment.closedAt}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteRecordingSession(recordingSession.id).then(() => updateRecordingSessionList());
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
+              </Link>
+            ))}
+          </tbody>
+        </Table>
+      )}
     </Layout>
   );
 };
