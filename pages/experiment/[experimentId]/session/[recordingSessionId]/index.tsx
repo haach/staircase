@@ -1,10 +1,11 @@
-import {Prisma} from '@prisma/client';
+/** @jsxImportSource @emotion/react */
 import Layout from 'components/Layout';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import React, {useState} from 'react';
+import {Button, Table} from 'react-bootstrap';
 import {Group, RecordingSession, Run} from 'types';
 import {serialize} from 'utils';
 
@@ -125,65 +126,88 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
             <div key={group.id}>
               <h2>Group {group.groupNumber}</h2>
               {group.mice?.length > 0 && (
-                <table>
+                <Table striped bordered hover>
                   <thead>
                     <tr>
+                      <th></th>
                       <th>Mouse No.</th>
                       <th>Chip No.</th>
                       <th>Gender</th>
                       <th>Geno Type</th>
                       <th>Deceased</th>
-                      <th>Recorded</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {group.mice.map((mouse) => (
-                      <tr key={mouse.id} className={mouse.run ? 'green' : 'grey'}>
-                        <td>{mouse.mouseNumber}</td>
-                        <td>{mouse.chipNumber}</td>
-                        <td>{mouse.gender}</td>
-                        <td>{mouse.genoType}</td>
-                        <td>
-                          <button
-                            disabled={!!props.recordingSession.Experiment.closedAt}
-                            onClick={() => updateMouse({...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()})}
-                            // TODO: update mouse afterwards
-                          >
-                            {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
-                          </button>
-                        </td>
-                        <td>
-                          {mouse.run ? (
-                            <>
-                              <Link href={{pathname: `${router.asPath}/run/${mouse.run.id}`}}>
-                                <a>View</a>
-                              </Link>
-                              <button
+                    {group.mice.map((mouse) => {
+                      const tableRow = (
+                        <tr css={mouse.run && {'&>*>span': {color: 'green'}}} key={mouse.id}>
+                          <td>{mouse.run ? '✅' : '⬜️'}</td>
+                          <td>
+                            <span>{mouse.mouseNumber}</span>
+                          </td>
+                          <td>
+                            <span>{mouse.chipNumber}</span>
+                          </td>
+                          <td>
+                            <span>{mouse.gender}</span>
+                          </td>
+                          <td>
+                            <span>{mouse.genoType}</span>
+                          </td>
+                          <td>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              disabled={!!props.recordingSession.Experiment.closedAt}
+                              onClick={() =>
+                                updateMouse({...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()}).then(() => {
+                                  console.log('Need to update recordingSession');
+                                })
+                              }
+                            >
+                              {mouse.deceasedAt ? 'Mark as alive 🐭' : 'Mark as deceased 💀'}
+                            </Button>
+                          </td>
+                          <td>
+                            {mouse.run ? (
+                              <Button
+                                variant="danger"
+                                size="sm"
                                 disabled={!!props.recordingSession.Experiment.closedAt}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   deleteRun(mouse.run.id).then(() => updateRunList());
                                 }}
                               >
                                 Delete
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() =>
-                                createNewRun(props.recordingSession.id, mouse.id).then((res) => {
-                                  router.push(`${router.asPath}/run/${res.id}`);
-                                })
-                              }
-                              disabled={!!props.recordingSession.Experiment.closedAt}
-                            >
-                              Record a run
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  createNewRun(props.recordingSession.id, mouse.id).then((res) => {
+                                    router.push(`${router.asPath}/run/${res.id}`);
+                                  })
+                                }
+                                disabled={!!props.recordingSession.Experiment.closedAt}
+                              >
+                                Record a run
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                      return mouse.run ? (
+                        <Link key={mouse.id} href={`${router.asPath}/run/${mouse.run.id}`}>
+                          {tableRow}
+                        </Link>
+                      ) : (
+                        tableRow
+                      );
+                    })}
                   </tbody>
-                </table>
+                </Table>
               )}
             </div>
           ))}
