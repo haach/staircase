@@ -83,7 +83,7 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
     (experiment.recordingSessions ?? []).forEach((recordingSession) => {
       (recordingSession.runs ?? []).forEach((run) => {
         const row = [
-          experiment.id,
+          experiment.displayId,
           run.Mouse.Group.groupNumber,
           run.Mouse.pyratId,
           run.Mouse.mouseNumber,
@@ -111,10 +111,10 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
           run.left[8],
           run.left[0],
         ].map((item) => String(item));
-        csvBody.push(...row);
+        csvBody.push(row);
       });
     });
-    setCsvData([csvHeader, csvBody]);
+    setCsvData([csvHeader, ...csvBody]);
   }, [setCsvData, experiment]);
 
   useEffect(() => {
@@ -126,7 +126,7 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
           // className="btn btn-primary"
           // target="_blank"
         >
-          <span css={{color: 'white'}}>Download data</span>
+          <Button css={{color: 'white'}}>Download data</Button>
         </CSVLink>
       );
     }
@@ -134,43 +134,47 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
 
   return (
     <Layout>
-      <h1>Export data for experiment: {experiment.name}</h1>
-      {!experiment.closedAt && (
-        <p>⚠️ Experiment is not concluded yet. There might be more data added after your export.</p>
-      )}
-      <h2>Experiment Setup</h2>
-      <table>
-        <tbody>
-          <tr>
-            <td>Groups:</td>
-            <td>{experiment.groups.length}</td>
-          </tr>
-          <tr>
-            <td>Mice:</td>
-            <td>{experiment.groups.flatMap((group) => group.mice).length}</td>
-          </tr>
-        </tbody>
-      </table>
-      <h2>Recording sessions</h2>
-      <table>
-        <tbody>
-          {experiment.recordingSessions.map((recordingSession, idx) => (
-            <tr key={recordingSession.id}>
-              <td>{idx + 1}</td>
-              <td>
-                {recordingSession.author.name} ({recordingSession.author.email})
-              </td>
-              <td>{new Date(recordingSession.createdAt).toLocaleDateString()}</td>
-              <td>{recordingSession.runs.length} runs</td>
+      <>
+        <h1>Export data for experiment: {experiment.name}</h1>
+        {!experiment.closedAt && (
+          <p>⚠️ Experiment is not concluded yet. There might be more data added after your export.</p>
+        )}
+        <h2>Experiment Setup</h2>
+        <table>
+          <tbody>
+            <tr>
+              <td>Groups:</td>
+              <td>{experiment.groups.length}</td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-
-      <Button>
-        {!csvData && <p>Loading...</p>}
+            <tr>
+              <td>Mice:</td>
+              <td>{experiment.groups.flatMap((group) => group.mice).length}</td>
+            </tr>
+          </tbody>
+        </table>
+        <h2>Recording sessions</h2>
+        <table>
+          <tbody>
+            {experiment.recordingSessions.map((recordingSession, idx) => (
+              <tr key={recordingSession.id}>
+                <td>{idx + 1}</td>
+                <td>
+                  {recordingSession.author.name} ({recordingSession.author.email})
+                </td>
+                <td>{new Date(recordingSession.createdAt).toLocaleDateString()}</td>
+                <td>{recordingSession.runs.length} runs</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {console.log('csvData', csvData)}
+        {!csvData && (
+          <div>
+            <Button>Loading...</Button>
+          </div>
+        )}
         {exportButton}
-      </Button>
+      </>
     </Layout>
   );
 };
