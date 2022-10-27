@@ -8,7 +8,7 @@ import {useRouter} from 'next/router';
 import React, {ChangeEvent, useState} from 'react';
 import {Button} from 'react-bootstrap';
 import {Run} from 'types';
-import {serialize} from 'utils';
+import {isTouchDevice, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const run = await prisma.run.findUnique({
@@ -44,6 +44,18 @@ const handleSubmit = async (forrmState) => {
 const RunDetail: React.FC<Props> = (props) => {
   const [formState, setFormState] = useState<Partial<Run>>(props.run);
   const router = useRouter();
+
+  const focusNext = (side: string, idx: number) => {
+    if (side === 'right' && idx === 8) {
+      // Focus first of left
+      document.getElementById(`left-stair-0`).focus();
+    } else if (side === 'left' && idx === 8) {
+      // Focus submit?
+    } else {
+      // Focus next
+      document.getElementById(`${side}-stair-${idx + 1}`).focus();
+    }
+  };
 
   return (
     <Layout>
@@ -81,6 +93,8 @@ const RunDetail: React.FC<Props> = (props) => {
                         const newState = {...formState};
                         newState.right[idx] = Number(e.target.value);
                         setFormState(newState);
+                        // Jump to next field on touch devices
+                        isTouchDevice() && e.target.value?.length > 0 && focusNext('right', idx);
                       },
                     }))
                   )}
@@ -104,6 +118,8 @@ const RunDetail: React.FC<Props> = (props) => {
                         const newState = {...formState};
                         newState.left[idx] = Number(e.target.value);
                         setFormState(newState);
+                        // Jump to next field on touch devices
+                        isTouchDevice() && e.target.value?.length > 0 && focusNext('left', idx);
                       },
                     }))
                   )}
