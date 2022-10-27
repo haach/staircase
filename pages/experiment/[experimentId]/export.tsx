@@ -1,10 +1,10 @@
 /** @jsxImportSource @emotion/react */
 import Layout from 'components/Layout';
-import exp from 'constants';
 import prisma from 'lib/prisma';
 import {GetServerSideProps} from 'next';
-import React, {FC, useEffect, useState} from 'react';
+import {FC, useEffect, useState} from 'react';
 import {Alert, Button} from 'react-bootstrap';
+import Spinner from 'react-bootstrap/Spinner';
 import {CSVLink} from 'react-csv';
 import {Experiment} from 'types';
 import {serialize} from 'utils';
@@ -171,7 +171,11 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
         </table>
         {!csvData && (
           <div>
-            <Button>Loading...</Button>
+            <Button>
+              <Spinner animation="border" role="status" variant="light" size="sm">
+                <span className="visually-hidden">Loading...</span>
+              </Spinner>
+            </Button>
           </div>
         )}
         {exportButton}
