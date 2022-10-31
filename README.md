@@ -25,7 +25,7 @@ Experiments frequently have around 30 subjects that will be recorded on 15 days 
 
 ## Goals
 
-The goal of this tool is to speed up the data recording process and offer an easy CSV export for every experiment. The scientist can
+The goal of this tool is to speed up the data recording process and offer an easy CSV export for every experiment. The scientist can setup a new experiment and add subjects to it. Each subject will have a unique ID and a set of info attached to it, like gender, geno type and chip number. To record data for an experiment the scientist can start a recording session and within this session record the data for each subject. The data will be saved in the database and can be exportet as a CSV file for further analysis.
 
 ## Preview
 
@@ -35,7 +35,9 @@ https://user-images.githubusercontent.com/34210193/198361915-59ad6d26-40b5-4127-
 
 Features that are still missing for this to be functional:
 
-- [x] A proper ui with user feedback and decent forms
+- [x] A proper ui with user feedback
+- [ ] Decent forms with validation
+- [ ] Error handling
 - [x] Authentication using SSO
 - [ ] Fix authentication issues in production
 - [x] Manage failing DB queries & roll back changes
@@ -43,13 +45,16 @@ Features that are still missing for this to be functional:
 - [ ] Application tests
 
 Nice to haves:
+
 - [ ] Making the app a PWA and therefore allow users to install it on a device in the lab for a quick access
 
 ## Project setup
 
 Project setup following example: https://vercel.com/guides/nextjs-prisma-postgres
 
-The frontend uses React and Next, the SQL database is hostedt on Heroku and I am using Prisma ORM as a middleware. The Prisma Client is auto-generated and offers out of the box type-safety for the API - Check it out on [prisma.io](https://www.prisma.io/). In my case it's being run from a serverless function / Next API route hostet on Vercel. This is my first Prisma project so please bare with me, if you find any bad practices and simply drop me a dm.
+The frontend uses React and Next, the Postgres database is hostedt on AWS and I am using Prisma ORM as a middleware. The Prisma Client is auto-generated and offers out of the box type-safety for the API - Check it out on [prisma.io](https://www.prisma.io/). In my case it's being run from a serverless function / Next API route hostet on Vercel.
+
+## Deployment
 
 Deployed on [Vercel](https://staircase-recorder.vercel.app/).
 
