@@ -45,6 +45,10 @@ type Props = {
   experiment: Experiment;
 };
 
+const calcDate = (first, second) => {
+  return Math.round((new Date(first).valueOf() - new Date(second).valueOf()) / (1000 * 60 * 60 * 24));
+};
+
 const ExperimentExport: FC<Props> = ({experiment}) => {
   const [csvData, setCsvData] = useState<Array<any>>();
   const [exportButton, setExportButton] = useState<JSX.Element>(null);
@@ -91,7 +95,7 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
           run.Mouse.genoType,
           run.Mouse.gender,
           recordingSession.createdAt,
-          '- Date ?????',
+          !!run.Mouse.surgeryDate ? calcDate(run.createdAt, run.Mouse.surgeryDate) : 'N/A',
           run.right[1],
           run.right[2],
           run.right[3],
