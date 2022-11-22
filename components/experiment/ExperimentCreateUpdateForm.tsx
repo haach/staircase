@@ -115,7 +115,10 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                 display: flex;
               `}
             >
-              <legend>Mouse {mouse.mouseNumber ?? index + 1}</legend>
+              <legend>
+                Mouse {mouse.mouseNumber ?? index + 1}
+                {!!mouse.deceasedAt && ' 💀'}
+              </legend>
 
               <Dropdown>
                 <Dropdown.Toggle
