@@ -4,9 +4,10 @@ import {InputGenerator} from 'components/InputGenerator';
 import Link from 'next/link';
 import React, {ChangeEvent, useState} from 'react';
 import {Button, Card, Dropdown} from 'react-bootstrap';
-import {Experiment, Group, Mouse} from 'types';
 import {FiMoreVertical} from 'react-icons/fi';
 import {GoPlus} from 'react-icons/go';
+import {Experiment, Group, Mouse} from 'types';
+import {toYYYYMMDD} from 'utils';
 
 const deleteMouse = async (id: string) => {
   const res = await fetch('/api/mouse/delete', {
@@ -76,6 +77,7 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
         mouseNumber: prevMouse.mouseNumber ?? 1,
         gender: prevMouse.gender ?? undefined,
         genoType: prevMouse.genoType ?? '',
+        surgeryDate: prevMouse.surgeryDate,
       });
     } else {
       newState.groups[groupIdx].mice.push({
@@ -257,6 +259,30 @@ const ExperimentCreateUpdateForm: React.FC<Props> = (props) => {
                   onChange: (e: ChangeEvent<HTMLInputElement>) => {
                     const newState = {...formState};
                     newState.groups[groupIdx].mice[index].genoType = e.target.value;
+                    setFormState(newState);
+                  },
+                },
+              ])}
+            </div>
+
+            <div
+              css={css`
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 8px;
+              `}
+            >
+              {InputGenerator([
+                {
+                  label: 'Surgery date',
+                  name: `${groupNumber.id}-mouse-${index}-surgeryDate`,
+                  id: `${groupNumber.id}-mouse-${index}-surgeryDate`,
+                  type: 'date',
+                  defaultValue: mouse.surgeryDate && toYYYYMMDD(mouse.surgeryDate),
+                  required: false,
+                  onChange: (e: ChangeEvent<HTMLInputElement>) => {
+                    const newState = {...formState};
+                    newState.groups[groupIdx].mice[index].surgeryDate = new Date(e.target.value);
                     setFormState(newState);
                   },
                 },

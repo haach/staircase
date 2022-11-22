@@ -5,3 +5,10 @@ export const isTouchDevice = () => {
   // @ts-ignore
   return typeof el.ongesturestart === 'function';
 };
+export const toYYYYMMDD = (date: Date | string) => {
+  const DATE = new Date(date);
+  const year = DATE.getFullYear();
+  const month = DATE.getMonth() + 1;
+  const day = DATE.getDate();
+  return `${year}-${month}-${day}`;
+};
