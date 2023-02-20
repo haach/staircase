@@ -8,7 +8,7 @@ import {useRouter} from 'next/router';
 import React, {useState} from 'react';
 import {Button, Table} from 'react-bootstrap';
 import {Group, RecordingSession, Run} from 'types';
-import {serialize} from 'utils';
+import {formatDate, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const recordingSession = await prisma.recordingSession.findUnique({
@@ -112,18 +112,21 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
   const router = useRouter();
   const updateRunList = () => {
     // Update recordingSession and hydrate view
-    getFreshRuns(props.recordingSession.id).then((data) => setStructuredRunList(getRunsPerGroup(props.groups, data)));
+    getFreshRuns(props.recordingSession.id).then((data) => {
+      console.log('data', data);
+      setStructuredRunList(getRunsPerGroup(props.groups, data));
+    });
   };
 
   return (
     <Layout>
       <div className="page">
-        <h1>Session recording started on {new Date(props.recordingSession.createdAt).toLocaleDateString()}</h1>
+        <h1>Session recording started on {formatDate(props.recordingSession.createdAt)}</h1>
         <p>
           Author: {props.recordingSession.author?.name} ({props.recordingSession.author?.email})
         </p>
         <main>
-          {structuredRunList.map((group) => (
+          {structuredRunList.map((group, groupIdx) => (
             <div key={group.id}>
               <h2>Group {group.groupNumber}</h2>
               {group.mice?.length > 0 && (
@@ -164,7 +167,15 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 updateMouse({...mouse, deceasedAt: mouse.deceasedAt ? null : new Date()}).then(() => {
-                                  console.log('Need to update recordingSession');
+                                  const updatedGroup = {
+                                    ...group,
+                                    mice: group.mice.map((m) =>
+                                      m.id === mouse.id ? {...m, deceasedAt: m.deceasedAt ? null : new Date()} : m
+                                    ),
+                                  };
+                                  setStructuredRunList(
+                                    structuredRunList.map((g, idx) => (idx === groupIdx ? updatedGroup : g))
+                                  );
                                 });
                               }}
                             >
@@ -207,10 +218,13 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
                             `,
                             !!mouse.deceasedAt &&
                               css`
-                                opacity: 0.8;
+                                td {
+                                  color: lightgray;
+                                }
                                 cursor: not-allowed;
                                 &:hover {
                                   td {
+                                    color: lightgray !important;
                                     --bs-table-accent-bg: transparent !important;
                                   }
                                 }

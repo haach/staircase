@@ -71,6 +71,7 @@ model Mouse {
   chipNumber  Int       @default(0) @map(name: "chip_number")
   gender      String
   deceasedAt  DateTime? @map(name: "deceasedd_at")
+  surgeryDate DateTime? @map(name: "surgery_date")
 
   genoType String?
 

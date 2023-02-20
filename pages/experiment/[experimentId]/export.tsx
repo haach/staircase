@@ -7,7 +7,7 @@ import {Alert, Button} from 'react-bootstrap';
 import Spinner from 'react-bootstrap/Spinner';
 import {CSVLink} from 'react-csv';
 import {Experiment} from 'types';
-import {serialize} from 'utils';
+import {formatDate, nameOrEmail, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
@@ -43,6 +43,10 @@ export const getServerSideProps: GetServerSideProps = async ({params}) => {
 
 type Props = {
   experiment: Experiment;
+};
+
+const calcDate = (first, second) => {
+  return Math.round((new Date(first).valueOf() - new Date(second).valueOf()) / (1000 * 60 * 60 * 24));
 };
 
 const ExperimentExport: FC<Props> = ({experiment}) => {
@@ -91,7 +95,7 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
           run.Mouse.genoType,
           run.Mouse.gender,
           recordingSession.createdAt,
-          '- Date ?????',
+          !!run.Mouse.surgeryDate ? calcDate(run.createdAt, run.Mouse.surgeryDate) : 'N/A',
           run.right[1],
           run.right[2],
           run.right[3],
@@ -142,29 +146,29 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
           </Alert>
         )}
         <h2>Experiment Setup</h2>
-        <table>
-          <tbody>
-            <tr>
-              <td>Groups:</td>
-              <td>{experiment.groups.length}</td>
-            </tr>
-            <tr>
-              <td>Mice:</td>
-              <td>{experiment.groups.flatMap((group) => group.mice).length}</td>
-            </tr>
-          </tbody>
-        </table>
+        <p>
+          Groups: {experiment.groups.length} <br />
+          Mice: {experiment.groups.flatMap((group) => group.mice).length}
+        </p>
         <h2>Recording sessions</h2>
         <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Author</th>
+              <th>Recording date</th>
+              <th>Runs</th>
+            </tr>
+          </thead>
           <tbody>
             {experiment.recordingSessions.map((recordingSession, idx) => (
               <tr key={recordingSession.id}>
                 <td>{idx + 1}</td>
+                <td>{nameOrEmail(recordingSession.author)}</td>
+                <td>{formatDate(recordingSession.createdAt)}</td>
                 <td>
-                  {recordingSession.author.name} ({recordingSession.author.email})
+                  {recordingSession.runs.length} run{recordingSession.runs.length > 1 && 's'}
                 </td>
-                <td>{new Date(recordingSession.createdAt).toLocaleDateString()}</td>
-                <td>{recordingSession.runs.length} runs</td>
               </tr>
             ))}
           </tbody>

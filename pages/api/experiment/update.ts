@@ -13,30 +13,79 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(400).json({message: 'Invalid Input'});
   }
 
+  const createdGroups = [];
+
+  // TODO: cannot be rolled back if one of the groups fails
+  for (const group of experiment.groups) {
+    if (group.id) {
+      // Update existing group
+
+      const newMice = group.mice.filter((mouse) => !mouse.id);
+      const existingMice = group.mice.filter((mouse) => mouse.id);
+
+      const prismaGroupUpdateArgs: Prisma.GroupUpdateArgs = {
+        where: {id: group.id},
+        data: {
+          ...group,
+          mice: {
+            updateMany:
+              existingMice.length > 0
+                ? existingMice.map((mouse) => ({
+                    where: {id: mouse.id},
+                    data: {
+                      ...mouse,
+                      groupId: undefined,
+                    },
+                  }))
+                : undefined,
+            ...(newMice.length > 0
+              ? {
+                  createMany: {
+                    data: newMice.map((mouse) => ({
+                      ...mouse,
+                      groupId: group.id,
+                    })),
+                  },
+                }
+              : {}),
+          },
+        },
+      };
+
+      await prisma.group.update(prismaGroupUpdateArgs);
+    } else {
+      // Create new group
+      const prismaGroupCreateArgs: Prisma.GroupCreateArgs = {
+        data: {
+          ...group,
+          experimentId: experiment.id,
+          mice: {
+            createMany: {
+              data: group.mice.map((mouse) => ({
+                ...mouse,
+                groupId: group.id,
+              })),
+            },
+          },
+        },
+      };
+      const result = await prisma.group.create(prismaGroupCreateArgs);
+      createdGroups.push(result);
+    }
+  }
+
   const prismaExperimentUpdateArgs: Prisma.ExperimentUpdateArgs = {
     where: {id: experiment.id as string},
     data: {
       name: experiment.name,
       displayId: experiment.displayId,
       groups: {
-        deleteMany: {},
-        connectOrCreate: experiment.groups.map((group) => ({
-          where: {id: group.id ?? ''},
-          create: {
-            ...group,
-            experimentId: undefined,
-            mice: {
-              connectOrCreate: group.mice.map((mouse) => ({
-                where: {id: mouse.id ?? ''},
-                create: {...mouse, groupId: undefined},
-              })),
-            },
-          },
-        })),
+        connect: createdGroups.map((group) => ({id: group.id})),
       },
     },
   };
 
   const updatedExperiment = await prisma.experiment.update(prismaExperimentUpdateArgs);
+
   res.json(updatedExperiment);
 };

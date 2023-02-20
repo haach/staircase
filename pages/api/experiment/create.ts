@@ -26,6 +26,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                       mouseNumber: mouse.mouseNumber,
                       gender: mouse.gender,
                       genoType: mouse.genoType,
+                      deceasedAt: mouse.deceasedAt ?? undefined,
+                      surgeryDate: mouse.surgeryDate ?? undefined,
                     })),
                   }
                 : {},

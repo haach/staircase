@@ -5,3 +5,16 @@ export const isTouchDevice = () => {
   // @ts-ignore
   return typeof el.ongesturestart === 'function';
 };
+export const toYYYYMMDD = (date: Date | string) => {
+  const DATE = new Date(date);
+  const year = DATE.getFullYear();
+  const month = DATE.getMonth() + 1;
+  const day = DATE.getDate();
+  return `${year}-${month}-${day}`;
+};
+
+export const formatDate = (date: Date | string) =>
+  new Date(date).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});
+
+export const nameOrEmail = (user: {email: string; name?: string}) =>
+  user.name ? `${user.name} (${user.email})` : user.email;

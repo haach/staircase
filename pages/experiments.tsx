@@ -7,7 +7,7 @@ import {Badge, Button, Table} from 'react-bootstrap';
 import {Experiment} from 'types';
 import Layout from '../components/Layout';
 import prisma from '../lib/prisma';
-import {serialize} from '../utils';
+import {formatDate, serialize} from '../utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experimentList = await prisma.experiment.findMany(prismaExperimentFindManyArgs);
@@ -65,10 +65,7 @@ const ExperimentOverview: React.FC<Props> = (props) => {
                   <tr css={{cursor: 'pointer'}}>
                     <td>{experiment.name}</td>
                     <td>{experiment.displayId}</td>
-                    {/* <td>
-                      {new Date(experiment.createdAt).toLocaleString()}
-                    </td> */}
-                    <td>{new Date(experiment.updatedAt).toLocaleString()}</td>
+                    <td>{formatDate(experiment.updatedAt)}</td>
                     <td>{experiment.recordingSessions?.length ?? 0}</td>
                     <td>{experiment.groups?.length ?? 0}</td>
                     <td>
