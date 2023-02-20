@@ -13,60 +13,65 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     return res.status(400).json({message: 'Invalid Input'});
   }
 
-  const updatedGroups = [];
-  // Not pretty but des the job
-  try {
-    for (const group of experiment.groups) {
-      if (group.id) {
-        // Update existing group
-        const prismaGroupUpdateArgs: Prisma.GroupUpdateArgs = {
-          where: {id: group.id},
-          data: {
-            ...group,
-            experimentId: undefined,
-            mice: {
-              deleteMany: {},
-              // UPDATE DOESNT WORK
-              connectOrCreate: group.mice.map((mouse) => ({
-                where: {id: mouse.id ?? ''},
+  const createdGroups = [];
 
-                create: {
-                  ...mouse,
-                  deceasedAt: mouse.deceasedAt ?? undefined,
-                  surgeryDate: mouse.surgeryDate ?? undefined,
-                  groupId: undefined,
-                },
+  // TODO: cannot be rolled back if one of the groups fails
+  for (const group of experiment.groups) {
+    if (group.id) {
+      // Update existing group
+
+      const newMice = group.mice.filter((mouse) => !mouse.id);
+      const existingMice = group.mice.filter((mouse) => mouse.id);
+
+      const prismaGroupUpdateArgs: Prisma.GroupUpdateArgs = {
+        where: {id: group.id},
+        data: {
+          ...group,
+          mice: {
+            updateMany:
+              existingMice.length > 0
+                ? existingMice.map((mouse) => ({
+                    where: {id: mouse.id},
+                    data: {
+                      ...mouse,
+                      groupId: undefined,
+                    },
+                  }))
+                : undefined,
+            ...(newMice.length > 0
+              ? {
+                  createMany: {
+                    data: newMice.map((mouse) => ({
+                      ...mouse,
+                      groupId: group.id,
+                    })),
+                  },
+                }
+              : {}),
+          },
+        },
+      };
+
+      await prisma.group.update(prismaGroupUpdateArgs);
+    } else {
+      // Create new group
+      const prismaGroupCreateArgs: Prisma.GroupCreateArgs = {
+        data: {
+          ...group,
+          experimentId: experiment.id,
+          mice: {
+            createMany: {
+              data: group.mice.map((mouse) => ({
+                ...mouse,
+                groupId: group.id,
               })),
             },
           },
-        };
-        const result = await prisma.group.update(prismaGroupUpdateArgs);
-        updatedGroups.push(result);
-      } else {
-        // Create new group
-        const prismaGroupCreateArgs: Prisma.GroupCreateArgs = {
-          data: {
-            ...group,
-            experimentId: experiment.id,
-            mice: {
-              connectOrCreate: group.mice.map((mouse) => ({
-                where: {id: mouse.id ?? ''},
-                create: {
-                  ...mouse,
-                  deceasedAt: mouse.deceasedAt ?? undefined,
-                  surgeryDate: mouse.surgeryDate ?? undefined,
-                  groupId: undefined,
-                },
-              })),
-            },
-          },
-        };
-        const result = await prisma.group.create(prismaGroupCreateArgs);
-        updatedGroups.push(result);
-      }
+        },
+      };
+      const result = await prisma.group.create(prismaGroupCreateArgs);
+      createdGroups.push(result);
     }
-  } catch (e) {
-    return e;
   }
 
   const prismaExperimentUpdateArgs: Prisma.ExperimentUpdateArgs = {
@@ -75,7 +80,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       name: experiment.name,
       displayId: experiment.displayId,
       groups: {
-        connect: updatedGroups.map((group) => ({id: group.id})),
+        connect: createdGroups.map((group) => ({id: group.id})),
       },
     },
   };
