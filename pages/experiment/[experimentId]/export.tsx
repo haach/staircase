@@ -7,7 +7,7 @@ import {Alert, Button} from 'react-bootstrap';
 import Spinner from 'react-bootstrap/Spinner';
 import {CSVLink} from 'react-csv';
 import {Experiment} from 'types';
-import {serialize} from 'utils';
+import {formatDate, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
@@ -167,7 +167,7 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
                 <td>
                   {recordingSession.author.name} ({recordingSession.author.email})
                 </td>
-                <td>{new Date(recordingSession.createdAt).toLocaleDateString()}</td>
+                <td>{formatDate(recordingSession.createdAt)}</td>
                 <td>{recordingSession.runs.length} runs</td>
               </tr>
             ))}
