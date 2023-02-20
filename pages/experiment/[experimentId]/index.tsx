@@ -9,7 +9,7 @@ import {useRouter} from 'next/router';
 import React, {useState} from 'react';
 import {Badge, Button, Dropdown, Table} from 'react-bootstrap';
 import {Experiment} from 'types';
-import {serialize} from 'utils';
+import {formatDate, serialize} from 'utils';
 import {GoPlus} from 'react-icons/go';
 import {FiMoreVertical} from 'react-icons/fi';
 import {css} from '@emotion/react';
@@ -186,9 +186,9 @@ const ExperimentDetail: React.FC<Props> = (props) => {
         </div>
 
         <div css={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-          <span>Created: {new Date(experiment.createdAt).toLocaleString()}</span>
-          {!experiment.closedAt && <span>Last updated:{new Date(experiment.updatedAt).toLocaleString()}</span>}
-          {!!experiment.closedAt && <span>Closed at {new Date(experiment.closedAt).toLocaleString()}</span>}
+          <span>Created: {formatDate(experiment.createdAt)}</span>
+          {!experiment.closedAt && <span>Last updated:{formatDate(experiment.updatedAt)}</span>}
+          {!!experiment.closedAt && <span>Closed at {formatDate(experiment.closedAt)}</span>}
         </div>
       </div>
 
@@ -230,8 +230,8 @@ const ExperimentDetail: React.FC<Props> = (props) => {
                     {recordingSession.author.name} ({recordingSession.author.email})
                   </td>
 
-                  <td>{new Date(recordingSession.createdAt).toLocaleString()}</td>
-                  <td>{new Date(recordingSession.updatedAt).toLocaleString()}</td>
+                  <td>{formatDate(recordingSession.createdAt)}</td>
+                  <td>{formatDate(recordingSession.updatedAt)}</td>
                   <td>{recordingSession.runs?.length ?? 0}</td>
 
                   <td>

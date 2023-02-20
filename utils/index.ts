@@ -12,3 +12,6 @@ export const toYYYYMMDD = (date: Date | string) => {
   const day = DATE.getDate();
   return `${year}-${month}-${day}`;
 };
+
+export const formatDate = (date: Date | string) =>
+  new Date(date).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});

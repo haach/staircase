@@ -8,7 +8,7 @@ import {useRouter} from 'next/router';
 import React, {useState} from 'react';
 import {Button, Table} from 'react-bootstrap';
 import {Group, RecordingSession, Run} from 'types';
-import {serialize} from 'utils';
+import {formatDate, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const recordingSession = await prisma.recordingSession.findUnique({
@@ -121,7 +121,7 @@ const RecordingSessionDetail: React.FC<Props> = (props) => {
   return (
     <Layout>
       <div className="page">
-        <h1>Session recording started on {new Date(props.recordingSession.createdAt).toLocaleDateString()}</h1>
+        <h1>Session recording started on {formatDate(props.recordingSession.createdAt)}</h1>
         <p>
           Author: {props.recordingSession.author?.name} ({props.recordingSession.author?.email})
         </p>
