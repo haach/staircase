@@ -20,6 +20,7 @@
     "@next-auth/prisma-adapter": "^1.0.5",
     "@prisma/client": "4.5.0",
     "bootstrap": "^5.2.2",
+    "formik": "^2.2.9",
     "next": "12.3.1",
     "next-auth": "4",
     "nodemailer": "^6.8.0",
