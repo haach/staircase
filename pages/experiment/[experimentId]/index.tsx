@@ -9,7 +9,7 @@ import {useRouter} from 'next/router';
 import React, {useState} from 'react';
 import {Badge, Button, Dropdown, Table} from 'react-bootstrap';
 import {Experiment} from 'types';
-import {formatDate, serialize} from 'utils';
+import {formatDate, nameOrEmail, serialize} from 'utils';
 import {GoPlus} from 'react-icons/go';
 import {FiMoreVertical} from 'react-icons/fi';
 import {css} from '@emotion/react';
@@ -226,9 +226,7 @@ const ExperimentDetail: React.FC<Props> = (props) => {
               <Link href={{pathname: `${router.asPath}/session/${recordingSession.id}`}} key={recordingSession.id}>
                 <tr css={{cursor: 'pointer'}}>
                   <td>{idx + 1}</td>
-                  <td>
-                    {recordingSession.author.name} ({recordingSession.author.email})
-                  </td>
+                  <td>{nameOrEmail(recordingSession.author)}</td>
 
                   <td>{formatDate(recordingSession.createdAt)}</td>
                   <td>{formatDate(recordingSession.updatedAt)}</td>

@@ -7,7 +7,7 @@ import {Alert, Button} from 'react-bootstrap';
 import Spinner from 'react-bootstrap/Spinner';
 import {CSVLink} from 'react-csv';
 import {Experiment} from 'types';
-import {formatDate, serialize} from 'utils';
+import {formatDate, nameOrEmail, serialize} from 'utils';
 
 export const getServerSideProps: GetServerSideProps = async ({params}) => {
   const experiment = await prisma.experiment.findUnique({
@@ -146,29 +146,29 @@ const ExperimentExport: FC<Props> = ({experiment}) => {
           </Alert>
         )}
         <h2>Experiment Setup</h2>
-        <table>
-          <tbody>
-            <tr>
-              <td>Groups:</td>
-              <td>{experiment.groups.length}</td>
-            </tr>
-            <tr>
-              <td>Mice:</td>
-              <td>{experiment.groups.flatMap((group) => group.mice).length}</td>
-            </tr>
-          </tbody>
-        </table>
+        <p>
+          Groups: {experiment.groups.length} <br />
+          Mice: {experiment.groups.flatMap((group) => group.mice).length}
+        </p>
         <h2>Recording sessions</h2>
         <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Author</th>
+              <th>Recording date</th>
+              <th>Runs</th>
+            </tr>
+          </thead>
           <tbody>
             {experiment.recordingSessions.map((recordingSession, idx) => (
               <tr key={recordingSession.id}>
                 <td>{idx + 1}</td>
-                <td>
-                  {recordingSession.author.name} ({recordingSession.author.email})
-                </td>
+                <td>{nameOrEmail(recordingSession.author)}</td>
                 <td>{formatDate(recordingSession.createdAt)}</td>
-                <td>{recordingSession.runs.length} runs</td>
+                <td>
+                  {recordingSession.runs.length} run{recordingSession.runs.length > 1 && 's'}
+                </td>
               </tr>
             ))}
           </tbody>
