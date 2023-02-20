@@ -143,15 +143,29 @@ const Header: React.FC = () => {
                   },
                 }}
               >
-                <Image
-                  src={session.user.image}
-                  alt="User image"
-                  width={30}
-                  height={30}
-                  css={{
-                    borderRadius: '50%',
-                  }}
-                />
+                {session.user.image ? (
+                  <Image
+                    src={session.user.image}
+                    alt="User image"
+                    width={30}
+                    height={30}
+                    css={{
+                      borderRadius: '50%',
+                    }}
+                  />
+                ) : (
+                  <div css={{width: '30px', height: '30px', borderRadius: '50%', backgroundColor: '#DDD'}}>
+                    <Image
+                      src="/user-avatar.svg"
+                      alt="User image placeholder"
+                      width={30}
+                      height={30}
+                      css={{
+                        borderRadius: '50%',
+                      }}
+                    />
+                  </div>
+                )}
                 <span>
                   {session.user.name} ({session.user.email})
                 </span>
