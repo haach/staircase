@@ -9,6 +9,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const experiment: Experiment = JSON.parse(req.body);
+  console.log('experiment', experiment);
   if (!experiment?.id) {
     return res.status(400).json({message: 'Invalid Input'});
   }
@@ -34,6 +35,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                     where: {id: mouse.id},
                     data: {
                       ...mouse,
+                      // automatically connected through nested query
                       groupId: undefined,
                     },
                   }))
@@ -43,7 +45,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                   createMany: {
                     data: newMice.map((mouse) => ({
                       ...mouse,
-                      groupId: group.id,
+                      // automatically connected through nested query
+                      groupId: undefined,
                     })),
                   },
                 }

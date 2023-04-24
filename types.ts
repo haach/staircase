@@ -53,3 +53,6 @@ export interface Experiment extends dbBaseProps {
   recordingSessions?: dbArray<RecordingSession>;
   groups?: dbArray<Group>;
 }
+
+export type WithPartialMice<T> = Omit<T, 'mice'> & {mice?: Array<Partial<Mouse>>};
+export type WithPartialGroups<T> = Omit<T, 'groups'> & {groups?: Array<Partial<WithPartialMice<Group>>>};

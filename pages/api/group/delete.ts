@@ -18,20 +18,22 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     },
     select: {
       id: true,
+      Run: true,
     },
   });
 
   if (nestedMice.length > 0) {
-    const deleteMice = prisma.run.deleteMany({
+    // TODO: check if this works properly now
+    const deleteRuns = prisma.run.deleteMany({
       where: {
-        id: {in: nestedMice.map((run) => run.id)},
+        id: {in: nestedMice.flatMap((mouse) => mouse.Run.map((run) => run.id))},
       },
     });
-    const deleteGroup = prisma.group.delete({
-      where: {id},
+    const deleteMice = prisma.mouse.deleteMany({
+      where: {id: {in: nestedMice.map((mouse) => mouse.id)}},
     });
 
-    const result = await prisma.$transaction([deleteMice, deleteGroup]);
+    const result = await prisma.$transaction([deleteRuns, deleteMice]);
     res.json(result);
   }
 
