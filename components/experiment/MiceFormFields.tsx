@@ -1,38 +1,33 @@
 /** @jsxImportSource @emotion/react */
 import {css} from '@emotion/react';
 import {InputGenerator} from 'components/InputGenerator';
-import {useFormikContext} from 'formik';
+import {FormikProps, useFormikContext} from 'formik';
 import {FC, ChangeEvent} from 'react';
 import {Card, Dropdown} from 'react-bootstrap';
 import {FiMoreVertical} from 'react-icons/fi';
-import {toYYYYMMDD} from 'utils';
+import {to_yyyyMMdd} from 'utils';
 import {Experiment, Group, Mouse, WithPartialGroups, WithPartialMice} from 'types';
 
 // Just making TS happy intermediately
 type MiceFormFieldProps = {
-  mouse: Partial<Mouse>;
   index: number;
   groupIdx: number;
-  group: Partial<WithPartialMice<Group>>;
-  formState: Partial<WithPartialGroups<Experiment>>;
-  setFormState: React.Dispatch<React.SetStateAction<Partial<WithPartialGroups<Experiment>>>>;
   setMiceToDeleteAfterSave: React.Dispatch<React.SetStateAction<string[]>>;
   miceToDeleteAfterSave: string[];
+  formik: FormikProps<Experiment>;
 };
 
 export const MiceFormFields: FC<MiceFormFieldProps> = ({
-  mouse,
   index,
   groupIdx,
-  group,
-  formState,
-  setFormState,
   setMiceToDeleteAfterSave,
   miceToDeleteAfterSave,
+  formik,
 }) => {
+  const formikMouse = formik.values.groups[groupIdx].mice[index];
+  const formikMouseSelector = `groups[${groupIdx}].mice[${index}]`;
   return (
     <Card
-      key={`${group.id}-${mouse.id}-${index}`}
       css={css`
         flex: 1 1 auto;
       `}
@@ -51,8 +46,8 @@ export const MiceFormFields: FC<MiceFormFieldProps> = ({
             `}
           >
             <legend>
-              Mouse {mouse.mouseNumber ?? index + 1}
-              {!!mouse.deceasedAt && ' 💀'}
+              Mouse {formikMouse.mouseNumber ?? index + 1}
+              {!!formikMouse.deceasedAt && ' 💀'}
             </legend>
 
             <Dropdown>
@@ -77,31 +72,31 @@ export const MiceFormFields: FC<MiceFormFieldProps> = ({
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                {mouse.id && (
+                {formikMouse.id && (
                   <>
                     <Dropdown.Item
                       onClick={() => {
-                        const newState = {...formState};
-                        newState.groups[groupIdx].mice[index] = {
-                          ...mouse,
-                          deceasedAt: mouse.deceasedAt ? null : new Date(),
-                        };
-                        setFormState(newState);
+                        formik.setFieldValue(
+                          `${formikMouseSelector}.deceasedAt`,
+                          formikMouse.deceasedAt ? null : new Date()
+                        );
                       }}
                     >
-                      {mouse.deceasedAt ? '🐭 Mark as alive' : '💀 Mark as deceased'}
+                      {formikMouse.deceasedAt ? '🐭 Mark as alive' : '💀 Mark as deceased'}
                     </Dropdown.Item>
                     <Dropdown.Divider />
                   </>
                 )}
                 <Dropdown.Item
                   onClick={() => {
-                    const newState = {...formState};
-                    newState.groups[groupIdx].mice.pop();
-                    setFormState(newState);
-                    if (mouse.id) {
+                    formik.setFieldValue(
+                      `groups[${groupIdx}].mice
+                    `,
+                      formik.values.groups[groupIdx].mice.filter((_, i) => i !== index)
+                    );
+                    if (formikMouse.id) {
                       // Delete mouse from database
-                      setMiceToDeleteAfterSave([...miceToDeleteAfterSave, mouse.id]);
+                      setMiceToDeleteAfterSave([...miceToDeleteAfterSave, formikMouse.id]);
                     }
                   }}
                   css={css`
@@ -123,42 +118,30 @@ export const MiceFormFields: FC<MiceFormFieldProps> = ({
             {InputGenerator([
               {
                 label: 'Pyrat ID*',
-                name: `${group.id}-mouse-${index}-pyratId`,
-                id: `${group.id}-mouse-${index}-pyratId`,
+                name: `${formikMouseSelector}.pyratId`,
+                id: `${formikMouseSelector}.pyratId`,
+                value: formikMouse.pyratId,
                 type: 'text',
-                defaultValue: mouse.pyratId,
                 required: true,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].pyratId = e.target.value;
-                  setFormState(newState);
-                },
+                onChange: formik.handleChange,
               },
               {
                 label: 'Mouse Nr*',
-                name: `${group.id}-mouse-${index}-mouseNumber`,
-                id: `${group.id}-mouse-${index}-mouseNumber`,
+                name: `${formikMouseSelector}.mouseNumber`,
+                id: `${formikMouseSelector}.mouseNumber`,
+                value: formikMouse.mouseNumber,
                 type: 'number',
-                defaultValue: mouse.mouseNumber,
                 required: true,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].mouseNumber = Number(e.target.value);
-                  setFormState(newState);
-                },
+                onChange: formik.handleChange,
               },
               {
                 label: 'Chip Nr*',
-                name: `${group.id}-mouse-${index}-chipNumber`,
-                id: `${group.id}-mouse-${index}-chipNumber`,
+                name: `${formikMouseSelector}.chipNumber`,
+                id: `${formikMouseSelector}.chipNumber`,
+                value: formikMouse.chipNumber,
                 type: 'number',
-                defaultValue: mouse.chipNumber,
                 required: true,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].chipNumber = Number(e.target.value);
-                  setFormState(newState);
-                },
+                onChange: formik.handleChange,
               },
             ])}
           </div>
@@ -171,34 +154,27 @@ export const MiceFormFields: FC<MiceFormFieldProps> = ({
             `}
           >
             <div>
-              <label htmlFor={`${group.id}-mouse-${index}-gender`}>Gender*</label>
+              <label htmlFor={`${formikMouseSelector}.gender`}>Gender*</label>
               <select
-                name={`${group.id}-mouse-${index}-gender`}
-                id={`${group.id}-mouse-${index}-gender`}
-                defaultValue={mouse.gender ?? ''}
+                name={`${formikMouseSelector}.gender`}
+                id={`${formikMouseSelector}.gender`}
+                value={formikMouse.gender}
                 required
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].gender = e.target.value as 'MALE' | 'FEMALE';
-                  setFormState(newState);
-                }}
+                onChange={formik.handleChange}
               >
-                <option value="">Select</option> <option value="FEMALE">Female</option>{' '}
+                <option value="">Select</option>
+                <option value="FEMALE">Female</option>
                 <option value="MALE">Male</option>
               </select>
             </div>
             {InputGenerator([
               {
                 label: 'Geno Type',
-                name: `${group.id}-mouse-${index}-genoType`,
-                id: `${group.id}-mouse-${index}-genoType`,
+                name: `${formikMouseSelector}.genoType`,
+                id: `${formikMouseSelector}.genoType`,
                 type: 'text',
-                defaultValue: mouse.genoType,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].genoType = e.target.value;
-                  setFormState(newState);
-                },
+                value: formikMouse.genoType,
+                onChange: formik.handleChange,
               },
             ])}
           </div>
@@ -213,16 +189,12 @@ export const MiceFormFields: FC<MiceFormFieldProps> = ({
             {InputGenerator([
               {
                 label: 'Surgery date',
-                name: `${group.id}-mouse-${index}-surgeryDate`,
-                id: `${group.id}-mouse-${index}-surgeryDate`,
+                name: `${formikMouseSelector}.surgeryDate`,
+                id: `${formikMouseSelector}.surgeryDate`,
                 type: 'date',
-                defaultValue: mouse.surgeryDate && toYYYYMMDD(mouse.surgeryDate),
                 required: false,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                  const newState = {...formState};
-                  newState.groups[groupIdx].mice[index].surgeryDate = new Date(e.target.value);
-                  setFormState(newState);
-                },
+                value: formikMouse.surgeryDate ? to_yyyyMMdd(formikMouse.surgeryDate) : '',
+                onChange: formik.handleChange,
               },
             ])}
           </div>

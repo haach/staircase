@@ -17,7 +17,6 @@ export const InputGenerator = (fields: Array<InputProps>, prefix?: string) =>
           border: 1px solid grey;
           border-radius: 4px;
           padding: 2px 6px;
-          /* text-align: right; */
         `}
       />
     </div>
